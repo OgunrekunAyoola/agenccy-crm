@@ -124,9 +124,8 @@ if (app.Environment.IsDevelopment())
 if (!app.Environment.IsDevelopment())
 {
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
-
-app.UseHttpsRedirection();
 
 // Security Headers Middleware
 app.Use(async (context, next) =>
