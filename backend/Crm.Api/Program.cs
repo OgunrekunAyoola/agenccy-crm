@@ -118,11 +118,10 @@ if (app.Environment.IsDevelopment())
 {
     try 
     {
-        // Use a background task or just run at startup
-        Task.Run(async () => {
-            using var scope = app.Services.CreateScope();
+        using (var scope = app.Services.CreateScope())
+        {
             await DbInitializer.SeedAsync(scope.ServiceProvider);
-        });
+        }
     }
     catch (Exception ex)
     {
