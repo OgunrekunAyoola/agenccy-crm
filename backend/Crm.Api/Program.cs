@@ -1,0 +1,158 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.EntityFrameworkCore;
+using Crm.Infrastructure.Data;
+using Crm.Application.Interfaces;
+using Crm.Application.Services;
+using Hangfire;
+using Hangfire.PostgreSql;
+using Crm.Infrastructure.BackgroundJobs;
+using Serilog;
+using Crm.Api.Middleware;
+using Crm.Infrastructure.Monitoring;
+
+using System.Diagnostics;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Serilog Configuration
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .Enrich.WithEnvironmentName()
+    .Enrich.WithProcessId()
+    .Enrich.WithThreadId()
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
+builder.Services.AddControllers();
+
+// CORS Configuration
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("DefaultPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
+
+// EF Core + Postgres
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+// Security & Context
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserContext, Crm.Infrastructure.Security.CurrentUserContext>();
+builder.Services.AddScoped<IUserRepository, Crm.Infrastructure.Repositories.UserRepository>();
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(Crm.Infrastructure.Repositories.GenericRepository<>));
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<ClientService>();
+builder.Services.AddScoped<LeadService>();
+builder.Services.AddScoped<OfferService>();
+builder.Services.AddScoped<ProjectService>();
+builder.Services.AddScoped<TaskService>();
+builder.Services.AddScoped<ContractService>();
+builder.Services.AddScoped<InvoiceService>();
+builder.Services.AddScoped<TimeEntryService>();
+builder.Services.AddScoped<AdMetricService>();
+
+// Background Jobs
+builder.Services.AddScoped<AdMetricsSyncJob>();
+builder.Services.AddScoped<RemindersJob>();
+
+// Hangfire
+builder.Services.AddHangfire(config => config
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UsePostgreSqlStorage(options => options.UseNpgsqlConnection(builder.Configuration.GetConnectionString("Default"))));
+
+builder.Services.AddHangfireServer();
+
+// JWT Authentication
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidAudience = jwtSettings["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key is missing.")))
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                context.Token = context.Request.Cookies["access_token"];
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+var app = builder.Build();
+
+// Seed Database
+if (app.Environment.IsDevelopment())
+{
+    try 
+    {
+        await DbInitializer.SeedAsync(app.Services);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[CRITICAL STARTUP ERROR] DbInitializer.SeedAsync failed: {ex.Message}");
+        Console.WriteLine(ex.StackTrace);
+    }
+}
+
+// Configure the HTTP request pipeline.
+app.UseCors("DefaultPolicy");
+
+// Global Exception Handling (RFC 7807)
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    // Authorization = new[] { new HangfireAuthorizationFilter() } // For production, add security here
+});
+
+// Schedule Recurring Jobs
+using (var scope = app.Services.CreateScope())
+{
+    var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+    var config = builder.Configuration.GetSection("BackgroundJobs");
+
+    recurringJobManager.AddOrUpdate<AdMetricsSyncJob>(
+        "ad-metrics-sync",
+        job => job.ExecuteAsync(),
+        config["AdMetricsSyncInterval"] ?? Cron.Daily());
+
+    recurringJobManager.AddOrUpdate<RemindersJob>(
+        "daily-reminders",
+        job => job.ExecuteAsync(),
+        config["RemindersInterval"] ?? Cron.Daily());
+}
+
+app.MapControllers();
+
+app.Run();
+
+public partial class Program { }
