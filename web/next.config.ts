@@ -1,5 +1,12 @@
 import type { NextConfig } from "next";
 
+const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+const normalizedApiBase = apiBase
+  ? (apiBase.startsWith('http://') || apiBase.startsWith('https://')
+    ? apiBase.replace(/\/$/, '')
+    : `https://${apiBase.replace(/\/$/, '')}`)
+  : '';
+
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
@@ -8,12 +15,14 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'}/api/:path*`,
+        destination: normalizedApiBase 
+          ? `${normalizedApiBase}/api/:path*` 
+          : '/api/:path*',
       },
     ];
   },
   async headers() {
-    const apiDomain = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+    const cspConnectSrc = normalizedApiBase || 'http://localhost:8000';
     return [
       {
         source: '/(.*)',
@@ -36,7 +45,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ${apiDomain};`,
+            value: `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ${cspConnectSrc};`,
           },
         ],
       },
