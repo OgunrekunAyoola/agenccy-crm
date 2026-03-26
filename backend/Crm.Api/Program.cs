@@ -24,6 +24,10 @@ var connectionString = isUsingRailway
     ? ParseDatabaseUrl(rawDatabaseUrl) 
     : builder.Configuration.GetConnectionString("Default");
 
+var allowedOrigins = (Environment.GetEnvironmentVariable("ALLOWED_ORIGINS") 
+    ?? builder.Configuration["CORS:AllowedOrigins"])?.Split(',') 
+    ?? new[] { "http://localhost:3000" };
+
 if (string.IsNullOrEmpty(connectionString))
 {
     throw new InvalidOperationException("Connection string 'Default' not found or DATABASE_URL environment variable is missing.");
@@ -52,7 +56,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("DefaultPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:3000")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -231,6 +235,30 @@ if (!string.IsNullOrEmpty(connectionString))
 
 app.MapControllers();
 
+// Diagnostics Endpoints
+app.MapGet("/ping", () => Results.Ok(new { status = "healthy", message = "pong", timestamp = DateTime.UtcNow }));
+
+app.MapGet("/api/health/db", async (AppDbContext db) => {
+    try {
+        var canConnect = await db.Database.CanConnectAsync();
+        if (canConnect) {
+            return Results.Ok(new { 
+                status = "healthy", 
+                database = "connected",
+                environment = isUsingRailway ? "Railway" : "Local"
+            });
+        }
+        return Results.StatusCodes.Status503ServiceUnavailable;
+    }
+    catch (Exception ex) {
+        return Results.Problem(
+            title: "Database Connection Failed",
+            detail: ex.Message,
+            statusCode: 500
+        );
+    }
+});
+
 app.Run();
 
 public partial class Program 
@@ -248,7 +276,12 @@ public partial class Program
         var port = uri.Port > 0 ? uri.Port : 5432;
         var database = uri.AbsolutePath.TrimStart('/');
 
-        // Railway usually requires SSL. Trust Server Certificate is often needed for dynamic environments.
-        return $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+        // Smart SSL: Internal Railway URLs usually don't support/require SSL.
+        // External URLs (connecting to Railway from outside) usually DO require it.
+        var isInternal = host.EndsWith(".railway.internal");
+        var sslMode = isInternal ? "Disable" : "Require";
+        var trustCertificate = !isInternal; // Trust server cert for external cloud connections
+
+        return $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode={sslMode};Trust Server Certificate={trustCertificate}";
     }
 }

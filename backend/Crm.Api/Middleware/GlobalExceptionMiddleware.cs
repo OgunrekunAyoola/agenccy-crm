@@ -35,10 +35,20 @@ public class GlobalExceptionMiddleware
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-        var result = JsonSerializer.Serialize(new
+        var response = new
         {
+            status = (int)HttpStatusCode.InternalServerError,
             message = exception.Message,
-            detail = exception.StackTrace
+            type = exception.GetType().Name,
+            detail = exception.StackTrace,
+            path = context.Request.Path.Value,
+            timestamp = DateTime.UtcNow
+        };
+
+        var result = JsonSerializer.Serialize(response, new JsonSerializerOptions 
+        { 
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase 
         });
 
         await context.Response.WriteAsync(result);
