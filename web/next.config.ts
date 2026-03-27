@@ -12,12 +12,15 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   output: 'standalone',
   async rewrites() {
+    // Prevent circular rewrites if normalizedApiBase is empty or the same as the current host
+    if (!normalizedApiBase) {
+      return [];
+    }
+    
     return [
       {
         source: '/api/:path*',
-        destination: normalizedApiBase 
-          ? `${normalizedApiBase}/api/:path*` 
-          : '/api/:path*',
+        destination: `${normalizedApiBase}/api/:path*`,
       },
     ];
   },
