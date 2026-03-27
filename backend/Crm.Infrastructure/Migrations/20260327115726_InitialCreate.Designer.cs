@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Crm.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260325185924_AddAdMetricsAndTimeEntries")]
-    partial class AddAdMetricsAndTimeEntries
+    [Migration("20260327115726_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -382,7 +382,7 @@ namespace Crm.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("OfferId")
+                    b.Property<Guid?>("OfferId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("TenantId")
@@ -642,9 +642,7 @@ namespace Crm.Infrastructure.Migrations
 
                     b.HasOne("Crm.Domain.Entities.Offer", "Offer")
                         .WithMany("Projects")
-                        .HasForeignKey("OfferId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("OfferId");
 
                     b.Navigation("Client");
 

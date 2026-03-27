@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -41,30 +41,6 @@ namespace Crm.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Leads",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    ConvertedClientId = table.Column<Guid>(type: "uuid", nullable: true),
-                    TenantId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Leads", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Leads_Clients_ConvertedClientId",
-                        column: x => x.ConvertedClientId,
-                        principalTable: "Clients",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Contacts",
                 columns: table => new
                 {
@@ -89,6 +65,30 @@ namespace Crm.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Leads",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    ConvertedClientId = table.Column<Guid>(type: "uuid", nullable: true),
+                    TenantId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Leads", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Leads_Clients_ConvertedClientId",
+                        column: x => x.ConvertedClientId,
+                        principalTable: "Clients",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -108,6 +108,31 @@ namespace Crm.Infrastructure.Migrations
                         name: "FK_Users_Tenants_TenantId",
                         column: x => x.TenantId,
                         principalTable: "Tenants",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Offers",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "numeric", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    Notes = table.Column<string>(type: "text", nullable: false),
+                    LeadId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TenantId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Offers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Offers_Leads_LeadId",
+                        column: x => x.LeadId,
+                        principalTable: "Leads",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -140,31 +165,6 @@ namespace Crm.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Offers",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    TotalAmount = table.Column<decimal>(type: "numeric", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    Notes = table.Column<string>(type: "text", nullable: false),
-                    LeadId = table.Column<Guid>(type: "uuid", nullable: false),
-                    TenantId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Offers", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Offers_Leads_LeadId",
-                        column: x => x.LeadId,
-                        principalTable: "Leads",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Projects",
                 columns: table => new
                 {
@@ -172,7 +172,7 @@ namespace Crm.Infrastructure.Migrations
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
                     ClientId = table.Column<Guid>(type: "uuid", nullable: true),
-                    OfferId = table.Column<Guid>(type: "uuid", nullable: false),
+                    OfferId = table.Column<Guid>(type: "uuid", nullable: true),
                     TenantId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
@@ -189,6 +189,32 @@ namespace Crm.Infrastructure.Migrations
                         name: "FK_Projects_Offers_OfferId",
                         column: x => x.OfferId,
                         principalTable: "Offers",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AdMetrics",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProjectId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Platform = table.Column<int>(type: "integer", nullable: false),
+                    Spend = table.Column<decimal>(type: "numeric", nullable: false),
+                    Impressions = table.Column<long>(type: "bigint", nullable: false),
+                    Clicks = table.Column<long>(type: "bigint", nullable: false),
+                    Conversions = table.Column<long>(type: "bigint", nullable: false),
+                    Date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    TenantId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AdMetrics", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AdMetrics_Projects_ProjectId",
+                        column: x => x.ProjectId,
+                        principalTable: "Projects",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -244,6 +270,37 @@ namespace Crm.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TimeEntries",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProjectId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Hours = table.Column<decimal>(type: "numeric", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    Date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    TenantId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TimeEntries", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TimeEntries_Projects_ProjectId",
+                        column: x => x.ProjectId,
+                        principalTable: "Projects",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TimeEntries_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Invoices",
                 columns: table => new
                 {
@@ -276,7 +333,7 @@ namespace Crm.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "InvoiceItems",
+                name: "InvoiceItem",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -289,108 +346,135 @@ namespace Crm.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_InvoiceItems", x => x.Id);
+                    table.PrimaryKey("PK_InvoiceItem", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_InvoiceItems_Invoices_InvoiceId",
+                        name: "FK_InvoiceItem_Invoices_InvoiceId",
                         column: x => x.InvoiceId,
                         principalTable: "Invoices",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "TimeEntries",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ProjectId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Hours = table.Column<decimal>(type: "numeric", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
-                    Date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TenantId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TimeEntries", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_TimeEntries_Projects_ProjectId",
-                        column: x => x.ProjectId,
-                        principalTable: "Projects",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_TimeEntries_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+            migrationBuilder.CreateIndex(
+                name: "IX_AdMetrics_ProjectId",
+                table: "AdMetrics",
+                column: "ProjectId");
 
-            migrationBuilder.CreateTable(
-                name: "AdMetrics",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ProjectId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Platform = table.Column<int>(type: "integer", nullable: false),
-                    Spend = table.Column<decimal>(type: "numeric", nullable: false),
-                    Impressions = table.Column<long>(type: "bigint", nullable: false),
-                    Clicks = table.Column<long>(type: "bigint", nullable: false),
-                    Conversions = table.Column<long>(type: "bigint", nullable: false),
-                    Date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TenantId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AdMetrics", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AdMetrics_Projects_ProjectId",
-                        column: x => x.ProjectId,
-                        principalTable: "Projects",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+            migrationBuilder.CreateIndex(
+                name: "IX_Contacts_ClientId",
+                table: "Contacts",
+                column: "ClientId");
 
-            // Indexes
-            migrationBuilder.CreateIndex("IX_Leads_ConvertedClientId", "Leads", "ConvertedClientId");
-            migrationBuilder.CreateIndex("IX_Contacts_ClientId", "Contacts", "ClientId");
-            migrationBuilder.CreateIndex("IX_Users_TenantId", "Users", "TenantId");
-            migrationBuilder.CreateIndex("IX_RefreshTokens_UserId", "RefreshTokens", "UserId");
-            migrationBuilder.CreateIndex("IX_Offers_LeadId", "Offers", "LeadId");
-            migrationBuilder.CreateIndex("IX_Projects_OfferId", "Projects", "OfferId");
-            migrationBuilder.CreateIndex("IX_Projects_ClientId", "Projects", "ClientId");
-            migrationBuilder.CreateIndex("IX_Contracts_ProjectId", "Contracts", "ProjectId");
-            migrationBuilder.CreateIndex("IX_Tasks_ProjectId", "Tasks", "ProjectId");
-            migrationBuilder.CreateIndex("IX_Invoices_ProjectId", "Invoices", "ProjectId");
-            migrationBuilder.CreateIndex("IX_Invoices_ContractId", "Invoices", "ContractId");
-            migrationBuilder.CreateIndex("IX_InvoiceItems_InvoiceId", "InvoiceItems", "InvoiceId");
-            migrationBuilder.CreateIndex("IX_TimeEntries_ProjectId", "TimeEntries", "ProjectId");
-            migrationBuilder.CreateIndex("IX_TimeEntries_UserId", "TimeEntries", "UserId");
-            migrationBuilder.CreateIndex("IX_AdMetrics_ProjectId", "AdMetrics", "ProjectId");
+            migrationBuilder.CreateIndex(
+                name: "IX_Contracts_ProjectId",
+                table: "Contracts",
+                column: "ProjectId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InvoiceItem_InvoiceId",
+                table: "InvoiceItem",
+                column: "InvoiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Invoices_ContractId",
+                table: "Invoices",
+                column: "ContractId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Invoices_ProjectId",
+                table: "Invoices",
+                column: "ProjectId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Leads_ConvertedClientId",
+                table: "Leads",
+                column: "ConvertedClientId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Offers_LeadId",
+                table: "Offers",
+                column: "LeadId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Projects_ClientId",
+                table: "Projects",
+                column: "ClientId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Projects_OfferId",
+                table: "Projects",
+                column: "OfferId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_UserId",
+                table: "RefreshTokens",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tasks_ProjectId",
+                table: "Tasks",
+                column: "ProjectId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TimeEntries_ProjectId",
+                table: "TimeEntries",
+                column: "ProjectId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TimeEntries_UserId",
+                table: "TimeEntries",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_TenantId",
+                table: "Users",
+                column: "TenantId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(name: "AdMetrics");
-            migrationBuilder.DropTable(name: "TimeEntries");
-            migrationBuilder.DropTable(name: "InvoiceItems");
-            migrationBuilder.DropTable(name: "Invoices");
-            migrationBuilder.DropTable(name: "Contracts");
-            migrationBuilder.DropTable(name: "Tasks");
-            migrationBuilder.DropTable(name: "Projects");
-            migrationBuilder.DropTable(name: "Offers");
-            migrationBuilder.DropTable(name: "Leads");
-            migrationBuilder.DropTable(name: "Contacts");
-            migrationBuilder.DropTable(name: "RefreshTokens");
-            migrationBuilder.DropTable(name: "Users");
-            migrationBuilder.DropTable(name: "Clients");
-            migrationBuilder.DropTable(name: "Tenants");
+            migrationBuilder.DropTable(
+                name: "AdMetrics");
+
+            migrationBuilder.DropTable(
+                name: "Contacts");
+
+            migrationBuilder.DropTable(
+                name: "InvoiceItem");
+
+            migrationBuilder.DropTable(
+                name: "RefreshTokens");
+
+            migrationBuilder.DropTable(
+                name: "Tasks");
+
+            migrationBuilder.DropTable(
+                name: "TimeEntries");
+
+            migrationBuilder.DropTable(
+                name: "Invoices");
+
+            migrationBuilder.DropTable(
+                name: "Users");
+
+            migrationBuilder.DropTable(
+                name: "Contracts");
+
+            migrationBuilder.DropTable(
+                name: "Tenants");
+
+            migrationBuilder.DropTable(
+                name: "Projects");
+
+            migrationBuilder.DropTable(
+                name: "Offers");
+
+            migrationBuilder.DropTable(
+                name: "Leads");
+
+            migrationBuilder.DropTable(
+                name: "Clients");
         }
     }
 }
