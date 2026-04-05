@@ -21,6 +21,21 @@ public class AuthService
         _configuration = configuration;
     }
 
+    public async Task<AuthResponse?> GetMeAsync(Guid userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null) return null;
+
+        return new AuthResponse
+        {
+            Id = user.Id,
+            Email = user.Email,
+            FullName = user.FullName,
+            Role = user.Role.ToString(),
+            TenantId = user.TenantId
+        };
+    }
+
     public async Task<(AuthResponse? Response, string? AccessToken, string? RefreshToken)> LoginAsync(LoginRequest request, string ipAddress)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email);

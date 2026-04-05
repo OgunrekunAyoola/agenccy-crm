@@ -8,14 +8,14 @@ public static class DbInitializer
 {
     public static async Task SeedAsync(IServiceProvider serviceProvider)
     {
-        using var scope = serviceProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var context = serviceProvider.GetRequiredService<AppDbContext>();
 
         await context.Database.MigrateAsync();
 
         await SeedTenantsAsync(context);
-        await SeedCrmDataAsync(context);
+        await context.SaveChangesAsync();
 
+        await SeedCrmDataAsync(context);
         await context.SaveChangesAsync();
     }
 

@@ -20,10 +20,12 @@ public class AppDbContext : DbContext
     public DbSet<Contact> Contacts => Set<Contact>();
     public DbSet<Lead> Leads => Set<Lead>();
     public DbSet<Offer> Offers => Set<Offer>();
+    public DbSet<OfferItem> OfferItems => Set<OfferItem>();
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<CrmTask> Tasks => Set<CrmTask>();
     public DbSet<Contract> Contracts => Set<Contract>();
     public DbSet<Invoice> Invoices => Set<Invoice>();
+    public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<TimeEntry> TimeEntries => Set<TimeEntry>();
     public DbSet<ProjectMember> ProjectMembers => Set<ProjectMember>();
     public DbSet<AdMetric> AdMetrics => Set<AdMetric>();
@@ -123,8 +125,7 @@ public class AppDbContext : DbContext
     private void ApplyTenantFilter<T>(ModelBuilder modelBuilder) where T : class, ITenantedEntity
     {
         modelBuilder.Entity<T>().HasQueryFilter(e => 
-            !_userContext.IsAuthenticated || 
-            (_userContext.TenantId.HasValue && e.TenantId == _userContext.TenantId.Value));
+            _userContext.TenantId.HasValue && e.TenantId == _userContext.TenantId.Value);
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

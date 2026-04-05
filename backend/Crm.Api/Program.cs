@@ -302,7 +302,7 @@ app.MapGet("/api/health/db", async (AppDbContext db) => {
             statusCode: 500
         );
     }
-});
+}).RequireAuthorization(p => p.RequireRole("Admin"));
 
 app.Run();
 
