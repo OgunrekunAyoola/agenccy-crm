@@ -12,8 +12,13 @@ export function isApiError(err: unknown): err is ApiError {
 }
 
 const rawBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
-// In production/static export, we MUST use the full URL as relative rewrites don't exist.
-const API_BASE_URL = rawBase.replace(/\/$/, '');
+
+// In the browser, always use relative paths (/api/...) so requests flow through
+// the Next.js rewrite in next.config.ts, which proxies to the backend server-side.
+// This keeps cookies on the app's own domain (agency-ccrm.netlify.app) where
+// proxy.ts can read them for server-side route protection.
+// In SSR context (no window), use the absolute URL for direct backend access.
+const API_BASE_URL = typeof window !== 'undefined' ? '' : rawBase.replace(/\/$/, '');
 
 export async function apiRequest<T>(
   endpoint: string,
