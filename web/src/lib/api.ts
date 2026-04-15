@@ -11,14 +11,14 @@ export function isApiError(err: unknown): err is ApiError {
   return err instanceof ApiError;
 }
 
-// STRICT ENFORCEMENT: We do not use relative paths or same-origin fallbacks.
-// All API calls must target the backend specified in NEXT_PUBLIC_API_BASE_URL.
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || '').replace(/\/$/, '');
+const rawBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
-if (!API_BASE_URL && typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
-  const errorMsg = '[CRITICAL] NEXT_PUBLIC_API_BASE_URL is missing. API calls will fail. Ensure environment variables are set.';
-  console.error(errorMsg);
-}
+// In the browser, always use relative paths (/api/...) so requests flow through
+// the Next.js rewrite in next.config.ts, which proxies to the backend server-side.
+// This keeps cookies on the app's own domain (agency-ccrm.netlify.app) where
+// proxy.ts can read them for server-side route protection.
+// In SSR context (no window), use the absolute URL for direct backend access.
+const API_BASE_URL = typeof window !== 'undefined' ? '' : rawBase.replace(/\/$/, '');
 
 export async function apiRequest<T>(
   endpoint: string,
