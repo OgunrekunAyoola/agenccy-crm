@@ -1,0 +1,19 @@
+# netlify.toml (at the root of the repo)
+
+[build]
+  # Tell Netlify where the app source is
+  base = "web"
+  
+  # The build command to run inside the /web folder
+  command = "npm run build"
+  
+  # Where Next.js puts the static files relative to the base directory
+  publish = ".next"
+
+[build.environment]
+  # Default API URL if not set in Netlify UI
+  NEXT_PUBLIC_API_BASE_URL = "https://agency-crm-backend-production.up.railway.app"
+
+[[plugins]]
+  # This plugin is required for Next.js features like SSR and Rewrites to work on Netlify
+  package = "@netlify/plugin-nextjs"

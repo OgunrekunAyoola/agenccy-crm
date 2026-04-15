@@ -1,0 +1,10 @@
+bin/
+obj/
+*.user
+*.lock.json
+.vs/
+.vscode/
+.git/
+.github/
+out/
+app/
