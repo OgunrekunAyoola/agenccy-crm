@@ -14,14 +14,18 @@ namespace Crm.UnitTests.Services;
 public class AuthServiceTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IGenericRepository<Tenant>> _tenantRepositoryMock;
     private readonly Mock<IConfiguration> _configurationMock;
+    private readonly Mock<Microsoft.Extensions.Logging.ILogger<AuthService>> _loggerMock;
     private readonly Fixture _fixture;
     private readonly AuthService _service;
 
     public AuthServiceTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
+        _tenantRepositoryMock = new Mock<IGenericRepository<Tenant>>();
         _configurationMock = new Mock<IConfiguration>();
+        _loggerMock = new Mock<Microsoft.Extensions.Logging.ILogger<AuthService>>();
         _fixture = new Fixture();
         _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
@@ -33,7 +37,7 @@ public class AuthServiceTests
 
         _configurationMock.Setup(c => c.GetSection("Jwt")).Returns(jwtSectionMock.Object);
 
-        _service = new AuthService(_userRepositoryMock.Object, _configurationMock.Object);
+        _service = new AuthService(_userRepositoryMock.Object, _tenantRepositoryMock.Object, _configurationMock.Object, _loggerMock.Object);
     }
 
     [Fact]

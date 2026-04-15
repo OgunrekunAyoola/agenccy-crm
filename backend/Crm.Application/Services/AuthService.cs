@@ -236,5 +236,16 @@ public class AuthService
         refreshToken.ReplacedByToken = newRefreshToken.Token;
         return newRefreshToken;
     }
+
+    public async Task<bool> CompleteOnboardingAsync(Guid userId, OnboardingRequest request)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null) return false;
+
+        // Implement onboarding logic here
+        
+        await _userRepository.UpdateAsync(user);
+        return true;
+    }
 }
 

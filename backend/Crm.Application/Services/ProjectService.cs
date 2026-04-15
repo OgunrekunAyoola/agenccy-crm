@@ -78,7 +78,7 @@ public class ProjectService
 
         if (request.Name != null) project.Name = request.Name;
         if (request.Description != null) project.Description = request.Description;
-        if (request.Status.HasValue) project.Status = request.Status.Value;
+        if (!string.IsNullOrEmpty(request.Status) && Enum.TryParse<ProjectStatus>(request.Status, true, out var parsedStatus)) project.Status = parsedStatus;
         if (request.ClientId.HasValue) project.ClientId = request.ClientId;
 
         await _repository.SaveChangesAsync();

@@ -128,8 +128,7 @@ public class AuthController : ControllerBase
         if (!success) return BadRequest(new { Message = "Invalid or expired token." });
         return Ok(new { Message = "Password has been reset successfully." });
     }
-
-    [Authorize]
+    [Authorize]
     [HttpPost("onboarding/complete")]
     public async Task<IActionResult> CompleteOnboarding([FromBody] OnboardingRequest request)
     {
@@ -141,7 +140,6 @@ public class AuthController : ControllerBase
 
         return Ok(new { Message = "Onboarding completed successfully." });
     }
-
     [Authorize]
     [HttpPost("change-password")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)

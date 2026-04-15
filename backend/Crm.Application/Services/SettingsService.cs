@@ -9,11 +9,13 @@ public class SettingsService : ISettingsService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserContext _currentUser;
+    private readonly IGenericRepository<Tenant> _tenantRepository;
 
-    public SettingsService(IUnitOfWork unitOfWork, ICurrentUserContext currentUser)
+    public SettingsService(IUnitOfWork unitOfWork, ICurrentUserContext currentUser, IGenericRepository<Tenant> tenantRepository)
     {
         _unitOfWork = unitOfWork;
         _currentUser = currentUser;
+        _tenantRepository = tenantRepository;
     }
 
     public async Task<OrganizationSettingsDto> GetOrganizationSettingsAsync()
@@ -22,7 +24,7 @@ public class SettingsService : ISettingsService
             throw new UnauthorizedAccessException("No tenant context found.");
 
         var tenantId = _currentUser.TenantId.Value;
-        var tenant = await _unitOfWork.Set<Tenant>().FirstOrDefaultAsync(t => t.Id == tenantId);
+        var tenant = await _tenantRepository.GetByIdAsync(tenantId);
 
         if (tenant == null)
             throw new Exception("Tenant not found.");
@@ -36,7 +38,7 @@ public class SettingsService : ISettingsService
             throw new UnauthorizedAccessException("No tenant context found.");
 
         var tenantId = _currentUser.TenantId.Value;
-        var tenant = await _unitOfWork.Set<Tenant>().FirstOrDefaultAsync(t => t.Id == tenantId);
+        var tenant = await _tenantRepository.GetByIdAsync(tenantId);
 
         if (tenant == null)
             throw new Exception("Tenant not found.");

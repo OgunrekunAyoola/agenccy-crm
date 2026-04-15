@@ -12,6 +12,11 @@ namespace Crm.UnitTests.Services;
 public class ClientServiceTests
 {
     private readonly Mock<IGenericRepository<Client>> _repositoryMock;
+    private readonly Mock<IGenericRepository<Project>> _projectRepositoryMock;
+    private readonly Mock<IGenericRepository<Lead>> _leadRepositoryMock;
+    private readonly Mock<IGenericRepository<Offer>> _offerRepositoryMock;
+    private readonly Mock<IGenericRepository<Invoice>> _invoiceRepositoryMock;
+    private readonly Mock<IGenericRepository<AdMetric>> _adMetricRepositoryMock;
     private readonly Mock<ICurrentUserContext> _currentUserContextMock;
     private readonly Fixture _fixture;
     private readonly ClientService _service;
@@ -19,6 +24,11 @@ public class ClientServiceTests
     public ClientServiceTests()
     {
         _repositoryMock = new Mock<IGenericRepository<Client>>();
+        _projectRepositoryMock = new Mock<IGenericRepository<Project>>();
+        _leadRepositoryMock = new Mock<IGenericRepository<Lead>>();
+        _offerRepositoryMock = new Mock<IGenericRepository<Offer>>();
+        _invoiceRepositoryMock = new Mock<IGenericRepository<Invoice>>();
+        _adMetricRepositoryMock = new Mock<IGenericRepository<AdMetric>>();
         _currentUserContextMock = new Mock<ICurrentUserContext>();
         _fixture = new Fixture();
         
@@ -27,6 +37,11 @@ public class ClientServiceTests
 
         _service = new ClientService(
             _repositoryMock.Object,
+            _projectRepositoryMock.Object,
+            _leadRepositoryMock.Object,
+            _offerRepositoryMock.Object,
+            _invoiceRepositoryMock.Object,
+            _adMetricRepositoryMock.Object,
             _currentUserContextMock.Object);
     }
 

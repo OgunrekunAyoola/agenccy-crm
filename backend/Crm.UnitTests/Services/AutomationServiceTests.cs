@@ -25,6 +25,7 @@ public class AutomationServiceTests
     private readonly Mock<ISlackService> _slackServiceMock;
     private readonly Mock<IEmailService> _emailServiceMock;
     private readonly Mock<IInvoiceService> _invoiceServiceMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Fixture _fixture;
     private readonly AutomationService _service;
 
@@ -43,6 +44,7 @@ public class AutomationServiceTests
         _slackServiceMock = new Mock<ISlackService>();
         _emailServiceMock = new Mock<IEmailService>();
         _invoiceServiceMock = new Mock<IInvoiceService>();
+        _unitOfWorkMock = new Mock<IUnitOfWork>();
 
         _fixture = new Fixture();
         _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
@@ -56,6 +58,7 @@ public class AutomationServiceTests
             _invoiceRepositoryMock.Object,
             _leadRepositoryMock.Object,
             _clientRepositoryMock.Object,
+            _unitOfWorkMock.Object,
             _loggerMock.Object,
             _userContextMock.Object,
             _slackServiceMock.Object,
