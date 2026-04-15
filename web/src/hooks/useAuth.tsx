@@ -48,7 +48,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     const data = await api.post<User>('/api/auth/login', { email, password });
     setUser(data);
-    router.push('/dashboard');
+    // Force a small delay to ensure state propagates
+    setTimeout(() => {
+      router.push('/dashboard');
+      router.refresh(); 
+    }, 100);
   };
 
   const register = async (email: string, password: string, fullName: string, agencyName: string) => {
