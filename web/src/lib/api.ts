@@ -11,12 +11,15 @@ export function isApiError(err: unknown): err is ApiError {
   return err instanceof ApiError;
 }
 
-// Use relative paths in the browser to leverage the Next.js proxy (next.config.ts)
-// Server-side calls (e.g. SSR) use the full backend URL to avoid loopback issues.
-const API_BASE_URL =
-  (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test')
-    ? ''
-    : process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+// STRICT ENFORCEMENT: We do not use relative paths or same-origin fallbacks.
+// All API calls must target the backend specified in NEXT_PUBLIC_API_BASE_URL.
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+
+if (!API_BASE_URL && typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
+  const errorMsg = '[CRITICAL] NEXT_PUBLIC_API_BASE_URL is missing. API calls will fail. Ensure environment variables are set.';
+  console.error(errorMsg);
+  // We throw a delayed error or handle it elegantly, but for "fail loudly" we ensure it's clear.
+}
 
 export async function apiRequest<T>(
   endpoint: string,
