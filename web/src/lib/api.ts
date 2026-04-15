@@ -53,11 +53,9 @@ export async function apiRequest<T>(
         // Retry original request with fresh cookies
         response = await fetch(`${API_BASE_URL}${normalizedEndpoint}`, fetchOptions);
       } else {
-        // Refresh token also expired — force re-login
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
-        }
-        throw new Error('Session expired. Please log in again.');
+        // Refresh token failed - fallback to signaling an expired session
+        localStorage.removeItem('access_token');
+        throw new Error('Session expired');
       }
     } catch (err) {
       if (err instanceof Error && err.message === 'Session expired. Please log in again.') {

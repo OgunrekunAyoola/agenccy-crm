@@ -33,11 +33,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     async function restoreSession() {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const data = await api.get<User>('/api/auth/me');
         setUser(data);
       } catch {
-        // Silently fail — no active session or token expired
+        localStorage.removeItem('access_token');
       } finally {
         setLoading(false);
       }
