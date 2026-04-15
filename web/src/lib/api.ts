@@ -13,12 +13,11 @@ export function isApiError(err: unknown): err is ApiError {
 
 // STRICT ENFORCEMENT: We do not use relative paths or same-origin fallbacks.
 // All API calls must target the backend specified in NEXT_PUBLIC_API_BASE_URL.
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || '').replace(/\/$/, '');
 
 if (!API_BASE_URL && typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
   const errorMsg = '[CRITICAL] NEXT_PUBLIC_API_BASE_URL is missing. API calls will fail. Ensure environment variables are set.';
   console.error(errorMsg);
-  // We throw a delayed error or handle it elegantly, but for "fail loudly" we ensure it's clear.
 }
 
 export async function apiRequest<T>(
@@ -32,7 +31,10 @@ export async function apiRequest<T>(
 
   const fetchOptions: RequestInit = {
     ...options,
-    headers,
+    headers: {
+      ...headers,
+      'Authorization': typeof window !== 'undefined' ? `Bearer ${localStorage.getItem('access_token')}` : '',
+    },
     credentials: 'include',
   };
 
@@ -53,10 +55,24 @@ export async function apiRequest<T>(
       });
 
       if (refreshResponse.ok) {
-        // Retry original request with fresh cookies
-        response = await fetch(`${API_BASE_URL}${normalizedEndpoint}`, fetchOptions);
+        // Persist the new access token so the retried request sends a fresh Bearer header.
+        const refreshData = await refreshResponse.json().catch(() => ({}));
+        if ((refreshData as { accessToken?: string }).accessToken) {
+          localStorage.setItem('access_token', (refreshData as { accessToken: string }).accessToken);
+        }
+        
+        // Rebuild fetch options with the updated token.
+        const retryOptions: RequestInit = {
+          ...fetchOptions,
+          headers: {
+            ...(fetchOptions.headers as Record<string, string>),
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          },
+        };
+        response = await fetch(`${API_BASE_URL}${normalizedEndpoint}`, retryOptions);
       } else {
-        // Refresh token also expired — force re-login
+        // Refresh token failed - fallback to signaling an expired session
+        localStorage.removeItem('access_token');
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
         }
