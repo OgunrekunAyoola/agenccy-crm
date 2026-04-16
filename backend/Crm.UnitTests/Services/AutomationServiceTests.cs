@@ -94,7 +94,7 @@ public class AutomationServiceTests
         _projectRepositoryMock.Verify(r => r.AddAsync(It.Is<Project>(p => p.Name == offer.Title)), Times.Once);
         _contractRepositoryMock.Verify(r => r.AddAsync(It.Is<Contract>(c => c.ProjectId != Guid.Empty)), Times.Once);
         _slackServiceMock.Verify(s => s.SendNotificationAsync(It.IsAny<string>()), Times.Once);
-        _projectRepositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
+        _unitOfWorkMock.Verify(u => u.CommitAsync(), Times.Once);
     }
 
     [Fact]
