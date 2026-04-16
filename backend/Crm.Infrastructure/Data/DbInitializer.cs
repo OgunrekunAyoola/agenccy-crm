@@ -51,8 +51,47 @@ public static class DbInitializer
             TenantId = tenantBId
         };
 
+        // Role-specific users for Tenant A — used by integration tests via AuthenticateAsync("RoleName")
+        var salesManagerA = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "salesmanager@tenanta.com",
+            FullName = "Sales Manager A",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+            Role = UserRole.SalesManager,
+            TenantId = tenantAId
+        };
+        var projectManagerA = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "projectmanager@tenanta.com",
+            FullName = "Project Manager A",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+            Role = UserRole.ProjectManager,
+            TenantId = tenantAId
+        };
+        var accountantA = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "accountant@tenanta.com",
+            FullName = "Accountant A",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+            Role = UserRole.Accountant,
+            TenantId = tenantAId
+        };
+        // Used by SettingsControllerTests
+        var salesRepA = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "sales@tenanta.com",
+            FullName = "Sales Rep A",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+            Role = UserRole.SalesManager,
+            TenantId = tenantAId
+        };
+
         await context.Tenants.AddRangeAsync(tenantA, tenantB);
-        await context.Users.AddRangeAsync(adminA, adminB);
+        await context.Users.AddRangeAsync(adminA, adminB, salesManagerA, projectManagerA, accountantA, salesRepA);
     }
 
     private static async Task SeedCrmDataAsync(AppDbContext context)

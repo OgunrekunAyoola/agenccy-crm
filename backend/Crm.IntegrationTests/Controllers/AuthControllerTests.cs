@@ -15,10 +15,10 @@ public class AuthControllerTests : BaseIntegrationTest
     public async Task Login_ValidCredentials_Returns200AndSetsCookies()
     {
         // Arrange
-        var request = new LoginRequest 
-        { 
-            Email = "admin@example.com", 
-            Password = "AdminPassword123!" 
+        var request = new LoginRequest
+        {
+            Email = "admin@tenanta.com",
+            Password = "Admin123!"
         };
 
         // Act

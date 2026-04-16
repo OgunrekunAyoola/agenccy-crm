@@ -30,8 +30,9 @@ public class AuthIntegrationTests : IClassFixture<CrmWebApplicationFactory>, IAs
     {
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await context.Database.MigrateAsync();
-        await DbInitializer.SeedAsync(_factory.Services);
+        await context.Database.EnsureDeletedAsync();
+        await context.Database.EnsureCreatedAsync();
+        await DbInitializer.SeedAsync(scope.ServiceProvider);
     }
 
     public Task DisposeAsync() => Task.CompletedTask;

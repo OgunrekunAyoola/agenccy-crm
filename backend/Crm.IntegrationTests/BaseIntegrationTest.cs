@@ -39,8 +39,16 @@ public abstract class BaseIntegrationTest : IClassFixture<CrmWebApplicationFacto
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    protected async Task AuthenticateAsync(string email = "admin@tenanta.com", string password = "Admin123!")
+    protected async Task AuthenticateAsync(string emailOrRole = "admin@tenanta.com", string password = "Admin123!")
     {
+        var email = emailOrRole switch
+        {
+            "Admin" => "admin@tenanta.com",
+            "SalesManager" => "salesmanager@tenanta.com",
+            "ProjectManager" => "projectmanager@tenanta.com",
+            "Accountant" => "accountant@tenanta.com",
+            _ => emailOrRole
+        };
         var response = await _client.PostAsJsonAsync("/api/auth/login", new LoginRequest { Email = email, Password = password });
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
