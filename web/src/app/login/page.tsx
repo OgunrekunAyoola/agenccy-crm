@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -9,29 +9,56 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Layout
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 
+/**
+ * Validate a redirect destination from the URL query string.
+ * Only allows internal relative paths that are not auth pages.
+ * Returns undefined for anything that could cause an open redirect or loop.
+ */
+function getSafeRedirect(raw: string | null): string | undefined {
+  if (!raw) return undefined;
+  // Reject absolute URLs and protocol-relative paths (//evil.com).
+  if (!raw.startsWith('/') || raw.startsWith('//')) return undefined;
+  // Reject auth pages — redirecting back to them would create a circular bounce.
+  if (['/login', '/register', '/signup'].some((p) => raw.startsWith(p))) return undefined;
+  return raw;
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Tracks whether a login() call is in flight. Used to prevent the
+  // already-authenticated redirect effect from firing after login() sets user —
+  // login() owns its own navigation; this component should not race with it.
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { login, user, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = getSafeRedirect(searchParams.get('redirect'));
 
-  // Redirect already-authenticated users away from the login page
+  // Redirect already-authenticated users away from the login page.
+  // This handles the case where restoreSession() finds an existing session on
+  // mount (e.g. localStorage token with no cookie). It must NOT fire when
+  // login() sets user, because login() handles its own navigation — including
+  // the validated redirect destination. isLoggingIn guards that separation.
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && user && !isLoggingIn) {
       router.replace('/dashboard');
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, isLoggingIn]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setIsSubmitting(true);
+    setIsLoggingIn(true);
     try {
-      await login(email, password);
+      await login(email, password, redirectTo);
     } catch (err) {
+      // Reset isLoggingIn so the already-authenticated guard is restored on failure.
+      setIsLoggingIn(false);
       // Show specific copy for rate-limiting, generic copy for everything else
       if (err instanceof Error && err.message.includes('429')) {
         setError('Too many login attempts. Please wait a moment and try again.');
@@ -42,9 +69,6 @@ export default function LoginPage() {
       setIsSubmitting(false);
     }
   };
-
-  // Show nothing while checking auth state to avoid flicker
-  if (loading) return null;
 
   return (
     <div className="flex min-h-[calc(100vh-64px)] items-center justify-center p-4 bg-background">

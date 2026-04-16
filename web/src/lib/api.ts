@@ -20,6 +20,83 @@ const rawBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 // In SSR context (no window), use the absolute URL for direct backend access.
 const API_BASE_URL = typeof window !== 'undefined' ? '' : rawBase.replace(/\/$/, '');
 
+/**
+ * Returns `Bearer <token>` when a valid access token exists in localStorage,
+ * or undefined when no usable token is present.
+ *
+ * Returning undefined (not an empty string) lets callers omit the Authorization
+ * header entirely. An absent header is unambiguous: the backend falls through to
+ * cookie auth without any token-parsing step. `Authorization: ` or
+ * `Authorization: Bearer null` can trigger malformed-credential rejection in
+ * strict auth middleware before the HttpOnly cookie is ever checked.
+ */
+function bearerToken(): string | undefined {
+  if (typeof window === 'undefined') return undefined;
+  const token = localStorage.getItem('access_token');
+  if (!token || token === 'null' || token === 'undefined') return undefined;
+  return `Bearer ${token}`;
+}
+
+// --- Shared refresh-token serialization ---
+// The backend uses rotating single-use refresh tokens: RefreshTokenAsync revokes
+// the consumed token before persisting the replacement. A second concurrent call
+// with the now-dead token receives a non-2xx response, which would trigger a false
+// session-expiry for an otherwise authenticated user.
+//
+// Fix: all concurrent 401-handlers await the same in-flight promise rather than
+// independently calling /api/auth/refresh.
+//
+// Lifecycle:
+//   Created on the first 401 that enters the refresh path.
+//   All subsequent concurrent 401-handlers get the same promise via the guard.
+//   Cleared in .finally() once settled so the next refresh cycle starts fresh.
+//   Resolves (void) on success; rejects with ApiError on failure.
+//   signals.emit('401') fires exactly once, inside this promise, on failure —
+//   not once per caller.
+let inflightRefresh: Promise<void> | null = null;
+
+function ensureTokenRefresh(): Promise<void> {
+  if (inflightRefresh) return inflightRefresh;
+
+  inflightRefresh = (async () => {
+    try {
+      const refreshResponse = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+
+      if (refreshResponse.ok) {
+        const refreshData = await refreshResponse.json().catch(() => ({}));
+        if ((refreshData as { accessToken?: string }).accessToken) {
+          localStorage.setItem('access_token', (refreshData as { accessToken: string }).accessToken);
+        }
+        // Resolves — all waiting callers will retry with the updated token.
+      } else {
+        // Refresh definitively failed — session is unrecoverable.
+        // Emit the signal here so it fires exactly once regardless of how many
+        // callers are awaiting this promise.
+        localStorage.removeItem('access_token');
+        signals.emit('401', 'Your session has expired. Please sign in again.');
+        throw new ApiError(401, 'Your session has expired. Please sign in again.');
+      }
+    } catch (err) {
+      if (err instanceof ApiError) throw err;
+      // Network-level failure reaching /api/auth/refresh (e.g. offline).
+      // All waiting callers receive this single rejection.
+      localStorage.removeItem('access_token');
+      signals.emit('401', 'Your session has expired. Please sign in again.');
+      throw new ApiError(401, 'Your session has expired. Please sign in again.');
+    }
+  })().finally(() => {
+    // Clear after settlement so the next refresh cycle creates a new request
+    // rather than re-awaiting an already-resolved promise.
+    inflightRefresh = null;
+  });
+
+  return inflightRefresh;
+}
+
 export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {},
@@ -29,11 +106,12 @@ export async function apiRequest<T>(
     ...(options.headers as Record<string, string>),
   };
 
+  const authHeader = bearerToken();
   const fetchOptions: RequestInit = {
     ...options,
     headers: {
       ...headers,
-      'Authorization': typeof window !== 'undefined' ? `Bearer ${localStorage.getItem('access_token')}` : '',
+      ...(authHeader ? { Authorization: authHeader } : {}),
     },
     credentials: 'include',
   };
@@ -42,43 +120,42 @@ export async function apiRequest<T>(
   let response = await fetch(`${API_BASE_URL}${normalizedEndpoint}`, fetchOptions);
 
   // --- 401 Auto-refresh ---
+  // Skip /auth/me: a 401 there means "no session" (normal for unauthenticated
+  // visitors) — not "session expired mid-use". Triggering a refresh attempt
+  // here causes signals.emit('401') to fire on every public page load, which
+  // overlays the landing page and login form with the "Session Expired" modal.
   if (
     response.status === 401 &&
     !endpoint.includes('/auth/login') &&
+    !endpoint.includes('/auth/me') &&
     !endpoint.includes('/auth/refresh')
   ) {
     try {
-      const refreshResponse = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      });
+      // All concurrent 401-handlers await the same shared promise.
+      // See ensureTokenRefresh() for the serialization contract.
+      await ensureTokenRefresh();
 
-      if (refreshResponse.ok) {
-        // Persist the new access token so the retried request sends a fresh Bearer header.
-        const refreshData = await refreshResponse.json().catch(() => ({}));
-        if ((refreshData as { accessToken?: string }).accessToken) {
-          localStorage.setItem('access_token', (refreshData as { accessToken: string }).accessToken);
-        }
-        // Rebuild fetch options with the updated token.
-        const retryOptions: RequestInit = {
-          ...fetchOptions,
-          headers: {
-            ...(fetchOptions.headers as Record<string, string>),
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-          },
-        };
-        response = await fetch(`${API_BASE_URL}${normalizedEndpoint}`, retryOptions);
-      } else {
-        // Refresh token failed - fallback to signaling an expired session
-        localStorage.removeItem('access_token');
-        throw new Error('Session expired');
-      }
+      // Refresh succeeded — rebuild headers from scratch so the now-expired
+      // Bearer value is never forwarded on the retry.
+      const retryToken = bearerToken();
+      const retryOptions: RequestInit = {
+        ...fetchOptions,
+        headers: {
+          ...headers,
+          ...(retryToken ? { Authorization: retryToken } : {}),
+        },
+      };
+      response = await fetch(`${API_BASE_URL}${normalizedEndpoint}`, retryOptions);
+      // Falls through to the !response.ok block below to handle the retry result.
     } catch (err) {
-      if (err instanceof Error && err.message === 'Session expired. Please log in again.') {
+      if (err instanceof ApiError) {
+        // ensureTokenRefresh already emitted the signal and cleared local state.
         throw err;
       }
-      console.error('Auto-refresh failed', err);
+      // Safety net: unexpected throw type — should not be reachable in practice.
+      localStorage.removeItem('access_token');
+      signals.emit('401', 'Your session has expired. Please sign in again.');
+      throw new ApiError(401, 'Your session has expired. Please sign in again.');
     }
   }
 
@@ -91,7 +168,7 @@ export async function apiRequest<T>(
       `API error: ${response.status}`;
 
     // --- Global Signals for Failsafe UI ---
-    if (response.status === 401 && !endpoint.includes('/auth/login')) {
+    if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/me')) {
       signals.emit('401', message);
     } else if (response.status === 403) {
       signals.emit('403', message);

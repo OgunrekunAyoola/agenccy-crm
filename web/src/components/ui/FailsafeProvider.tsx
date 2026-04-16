@@ -1,20 +1,36 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { signals } from '@/lib/signals';
 import { SessionExpiredState, AccessDeniedState, ErrorState } from './StateVisuals';
 import { usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
+// useLayoutEffect fires before the browser paints, so switching to it for the
+// pathname-based signal reset eliminates the one-frame flash of SessionExpiredState
+// when navigating to /login after a mid-session expiry.
+//
+// SSR caveat: useLayoutEffect is silently skipped on the server and React emits
+// a warning. The isomorphic pattern below resolves to useEffect on the server
+// (where signal is always null anyway) and useLayoutEffect in the browser.
+// It must be a module-level constant so the hook identity is stable across renders.
+const useIsomorphicLayoutEffect =
+  typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
 export function FailsafeProvider({ children }: { children: React.ReactNode }) {
   const [signal, setSignal] = useState<'401' | '403' | '500' | null>(null);
   const pathname = usePathname();
 
-  // Reset signals when navigating to a new page
-  useEffect(() => {
+  // Clear the signal before the browser paints when navigating to a new page.
+  // useIsomorphicLayoutEffect ensures the stale signal is gone before the user
+  // sees the new page — specifically prevents a flash of SessionExpiredState on
+  // /login when navigating there from an expired protected page.
+  useIsomorphicLayoutEffect(() => {
     setSignal(null);
   }, [pathname]);
 
+  // Subscribe to global API signals once on mount. Stays as useEffect to avoid
+  // running the subscription during SSR/hydration where it has no effect anyway.
   useEffect(() => {
     const unsubscribe = signals.subscribe((type) => {
       setSignal(type);
