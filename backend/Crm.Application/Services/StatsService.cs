@@ -35,14 +35,16 @@ public class StatsService : IStatsService
         // All queries rely on the EF Core global query filter (TenantId == CurrentTenantId).
         // No extra tenant filtering is needed here — it is enforced at the DB context level.
 
-        var totalRevenue = await _invoices
+        // Cast to double before SumAsync — SQLite does not support Sum on decimal columns.
+        // PostgreSQL handles decimal Sum natively; the cast is a no-op there.
+        var totalRevenue = (decimal)(await _invoices
             .AsQueryable()
             .Where(i => i.Status == InvoiceStatus.Paid)
-            .SumAsync(i => (decimal?)i.TotalAmount) ?? 0m;
+            .SumAsync(i => (double?)i.TotalAmount) ?? 0d);
 
-        var totalAdSpend = await _adMetrics
+        var totalAdSpend = (decimal)(await _adMetrics
             .AsQueryable()
-            .SumAsync(m => (decimal?)m.Spend) ?? 0m;
+            .SumAsync(m => (double?)m.Spend) ?? 0d);
 
         var activeProjectsCount = await _projects
             .AsQueryable()

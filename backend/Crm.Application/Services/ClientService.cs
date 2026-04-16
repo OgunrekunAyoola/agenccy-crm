@@ -111,19 +111,21 @@ public class ClientService
             .CountAsync(o => o.Status == OfferStatus.Draft || o.Status == OfferStatus.Sent);
 
         // Invoice financials
-        var totalInvoiced = await _invoices.AsQueryable()
+        // Cast to double before SumAsync — SQLite does not support Sum on decimal columns.
+        // PostgreSQL handles decimal Sum natively; the cast is a no-op there.
+        var totalInvoiced = (decimal)(await _invoices.AsQueryable()
             .Where(i => i.ClientId == clientId)
-            .SumAsync(i => (decimal?)i.TotalAmount) ?? 0m;
+            .SumAsync(i => (double?)i.TotalAmount) ?? 0d);
 
-        var totalPaid = await _invoices.AsQueryable()
+        var totalPaid = (decimal)(await _invoices.AsQueryable()
             .Where(i => i.ClientId == clientId && i.Status == InvoiceStatus.Paid)
-            .SumAsync(i => (decimal?)i.TotalAmount) ?? 0m;
+            .SumAsync(i => (double?)i.TotalAmount) ?? 0d);
 
         // Ad spend: all AdMetrics across all projects belonging to this client
         var totalAdSpend = clientProjectIds.Any()
-            ? await _adMetrics.AsQueryable()
+            ? (decimal)(await _adMetrics.AsQueryable()
                 .Where(m => clientProjectIds.Contains(m.ProjectId))
-                .SumAsync(m => (decimal?)m.Spend) ?? 0m
+                .SumAsync(m => (double?)m.Spend) ?? 0d)
             : 0m;
 
         return new ClientDashboardDto
