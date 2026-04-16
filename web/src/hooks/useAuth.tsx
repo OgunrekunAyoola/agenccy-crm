@@ -1,10 +1,16 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { LoadingOverlay } from '@/components/ui/FailsafeProvider';
+
+// Public routes that should never be blocked by the auth loading overlay.
+// These pages are server-rendered and already functional before client
+// hydration completes — showing a spinner here is needlessly jarring.
+const PUBLIC_PATHS = ['/', '/login', '/signup', '/register', '/forgot-password'];
+const PUBLIC_PREFIXES = ['/reset-password', '/portal'];
 
 export interface User {
   id: string;
@@ -19,7 +25,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, redirectTo?: string) => Promise<void>;
   register: (email: string, password: string, fullName: string, agencyName: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -30,7 +36,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
   const queryClient = useQueryClient();
+
+  const isPublicPath =
+    PUBLIC_PATHS.includes(pathname) ||
+    PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
   useEffect(() => {
     async function restoreSession() {
@@ -50,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     restoreSession();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, redirectTo?: string) => {
     const data = await api.post<any>('/api/auth/login', { email, password });
 
     // Fallback for cross-domain cookie blocking
@@ -59,9 +70,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     setUser(data);
-    // Use client-side navigation to avoid a full-page reload, which would
-    // re-enter the middleware→restoreSession loop before cookies settle.
-    router.push(data.isOnboarded === false ? '/onboarding' : '/dashboard');
+    // Onboarding always takes precedence over any redirect destination.
+    // Otherwise use the caller-supplied redirect (validated at call site) or
+    // fall back to the dashboard. Client-side push avoids a full-page reload
+    // that would re-enter the proxy→restoreSession cycle before cookies settle.
+    router.push(data.isOnboarded === false ? '/onboarding' : (redirectTo ?? '/dashboard'));
   };
 
   const register = async (email: string, password: string, fullName: string, agencyName: string) => {
@@ -85,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={{ user, loading, isAuthenticated: !!user, login, register, logout }}>
-      {loading ? <LoadingOverlay /> : children}
+      {loading && !isPublicPath ? <LoadingOverlay /> : children}
     </AuthContext.Provider>
   );
 }

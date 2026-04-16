@@ -2,13 +2,18 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 /**
- * Route protection proxy.
+ * Next.js 16 Proxy (formerly "middleware") for server-side route protection.
+ * File convention: src/proxy.ts, exported function named `proxy`.
+ * See: node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md
  *
  * Cookie names are set by AuthController.cs:
  *   SetTokenCookie("access_token", accessToken)
  *   SetTokenCookie("refresh_token", refreshToken)
  *
- * Both are HttpOnly — readable in proxy (server-side) but NOT in client JS.
+ * Both are HttpOnly — readable here (server-side) but NOT in client JS.
+ * Because the frontend proxies all /api/* requests through Next.js rewrites,
+ * Set-Cookie headers from the backend are forwarded to the browser scoped to
+ * the frontend domain (agency-ccrm.netlify.app), so this proxy can read them.
  */
 
 // Routes that are fully public (no session required) — prefix matches
