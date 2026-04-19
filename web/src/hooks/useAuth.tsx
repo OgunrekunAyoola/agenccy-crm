@@ -70,17 +70,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     setUser(data);
-    // Onboarding always takes precedence over any redirect destination.
-    // Otherwise use the caller-supplied redirect (validated at call site) or
-    // fall back to the dashboard. Client-side push avoids a full-page reload
-    // that would re-enter the proxy→restoreSession cycle before cookies settle.
-    router.push(data.isOnboarded === false ? '/onboarding' : (redirectTo ?? '/dashboard'));
+    // Use full-page navigation so the new page always hydrates with a settled
+    // cookie and a clean auth state — router.push() races with the re-render
+    // triggered by setUser() and silently drops the navigation.
+    window.location.href = data.isOnboarded === false ? '/onboarding' : (redirectTo ?? '/dashboard');
   };
 
   const register = async (email: string, password: string, fullName: string, agencyName: string) => {
     const data = await api.post<User>('/api/auth/register', { email, password, fullName, agencyName });
     setUser(data);
-    router.push('/onboarding');
+    window.location.href = '/onboarding';
   };
 
   const logout = async () => {
@@ -92,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('access_token');
       setUser(null);
       queryClient.clear();
-      window.location.href = '/login';
+      window.location.href = '/';
     }
   };
 

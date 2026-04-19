@@ -66,7 +66,7 @@ export default function OnboardingPage() {
     try {
       await api.post('/api/auth/onboarding/complete', formData);
       toast.success('Welcome aboard! Your agency is set up.');
-      router.push('/dashboard');
+      window.location.href = '/dashboard';
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
       toast.error(message);
