@@ -46,5 +46,65 @@
     "generic": "Something went wrong. Please try again.",
     "not_found": "Not found.",
     "unauthorized": "You are not authorized to view this page."
+  },
+  "landing": {
+    "nav": {
+      "login": "Log in",
+      "startTrial": "Start free trial"
+    },
+    "hero": {
+      "badge": "✦ Built exclusively for digital agencies",
+      "headline1": "From first lead to",
+      "headline2": "final invoice",
+      "headline3": ", in one place.",
+      "body": "Agency CRM connects your pipeline, contracts, projects, and billing — so you spend less time on admin and more time on results.",
+      "ctaPrimary": "Start your free trial →",
+      "ctaSecondary": "Sign in to your account",
+      "disclaimer": "No credit card required · 14-day free trial"
+    },
+    "stats": {
+      "leadToInvoice": "Lead-to-invoice in one system",
+      "contractTime": "To generate a signed contract",
+      "monthEnd": "Faster month-end close",
+      "thirdParty": "Third-party tools needed"
+    },
+    "features": {
+      "heading": "Everything your agency needs",
+      "subheading": "One platform for every stage of client work — from the first ad click to the final payment.",
+      "leadPipeline": {
+        "title": "Lead Pipeline",
+        "description": "Capture leads from Meta, Google, and TikTok ads automatically. Move prospects through your sales funnel with a visual Kanban board."
+      },
+      "proposals": {
+        "title": "Proposals & Contracts",
+        "description": "Send branded offers and get contracts signed digitally — no third-party tools needed. Track every status from draft to signed."
+      },
+      "billing": {
+        "title": "Invoice & Billing",
+        "description": "Generate invoices from contracts in one click. Automated monthly billing, partial payments, and overdue reminders built in."
+      },
+      "analytics": {
+        "title": "ROI Analytics",
+        "description": "Connect ad accounts and track spend, ROAS, CPL, and conversion rates per project. Real data — no spreadsheets."
+      },
+      "projects": {
+        "title": "Project Management",
+        "description": "Track deliverables, log time, and manage your team across every client engagement with Gantt charts and task boards."
+      },
+      "automation": {
+        "title": "Automation Engine",
+        "description": "Schedule recurring billing, sync ad metrics, and send reminders automatically. Focus on work, not admin."
+      }
+    },
+    "cta": {
+      "heading": "Ready to run a tighter agency?",
+      "body": "Join agencies who manage every client from lead to invoice in one system.",
+      "button": "Create your free account"
+    },
+    "footer": {
+      "copyright": "© 2026 Agency CRM. Precision growth for digital agencies.",
+      "login": "Log in",
+      "signup": "Sign up"
+    }
   }
 }
