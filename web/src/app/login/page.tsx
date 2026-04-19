@@ -152,6 +152,13 @@ function LoginPageContent() {
               {isSubmitting ? 'Signing in…' : 'Sign In'}
             </Button>
           </form>
+
+          <div className="mt-6 text-center text-sm text-muted-foreground">
+            Don&apos;t have an account?{' '}
+            <Link href="/register" className="font-semibold text-primary hover:underline">
+              Create one
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>
