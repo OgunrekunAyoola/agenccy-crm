@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/LayoutPrimitives';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 
 function getPasswordStrength(password: string): { score: number; label: string; color: string } {
   let score = 0;
@@ -32,6 +33,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { register } = useAuth();
+  const { t } = useTranslation('auth');
 
   const strength = getPasswordStrength(formData.password);
 
@@ -43,24 +45,24 @@ export default function RegisterPage() {
 
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
-    if (!formData.fullName.trim()) errors.fullName = 'Full name is required.';
-    if (!formData.agencyName.trim()) errors.agencyName = 'Agency name is required.';
+    if (!formData.fullName.trim()) errors.fullName = t('register.errors.fullNameRequired');
+    if (!formData.agencyName.trim()) errors.agencyName = t('register.errors.agencyNameRequired');
     if (!formData.email.trim()) {
-      errors.email = 'Email is required.';
+      errors.email = t('register.errors.emailRequired');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = 'Enter a valid email address.';
+      errors.email = t('register.errors.emailInvalid');
     }
     if (!formData.password) {
-      errors.password = 'Password is required.';
+      errors.password = t('register.errors.passwordRequired');
     } else if (formData.password.length < 8) {
-      errors.password = 'Password must be at least 8 characters.';
+      errors.password = t('register.errors.passwordTooShort');
     } else if (strength.score < 3) {
-      errors.password = 'Too weak — add uppercase letters, numbers, or symbols.';
+      errors.password = t('register.errors.passwordTooWeak');
     }
     if (!formData.confirmPassword) {
-      errors.confirmPassword = 'Please confirm your password.';
+      errors.confirmPassword = t('register.errors.confirmRequired');
     } else if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match.';
+      errors.confirmPassword = t('register.errors.confirmMismatch');
     }
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -74,7 +76,7 @@ export default function RegisterPage() {
     try {
       await register(formData.email, formData.password, formData.fullName, formData.agencyName);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Registration failed. Please try again.';
+      const message = err instanceof Error ? err.message : t('register.errors.registrationFailed');
       setError(message);
     } finally {
       setIsSubmitting(false);
@@ -85,21 +87,21 @@ export default function RegisterPage() {
     <div className="flex min-h-[calc(100vh-64px)] items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-50 via-slate-100 to-slate-200">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">Join the Elite</h1>
-          <p className="text-lg text-slate-600">Scale your agency with the ultimate operating system.</p>
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">{t('register.headline')}</h1>
+          <p className="text-lg text-slate-600">{t('register.subheadline')}</p>
         </div>
 
         <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-sm">
           <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center">{t('register.title')}</CardTitle>
             <CardDescription className="text-center">
-              Start your free 14-day trial today. No credit card required.
+              {t('register.subtitle')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleRegister} className="space-y-4" noValidate>
               <Input
-                label="Full Name"
+                label={t('register.fullName')}
                 name="fullName"
                 placeholder="Jane Cooper"
                 value={formData.fullName}
@@ -109,7 +111,7 @@ export default function RegisterPage() {
                 error={fieldErrors.fullName}
               />
               <Input
-                label="Agency Name"
+                label={t('register.agencyName')}
                 name="agencyName"
                 placeholder="Acme Growth Partners"
                 value={formData.agencyName}
@@ -119,7 +121,7 @@ export default function RegisterPage() {
                 error={fieldErrors.agencyName}
               />
               <Input
-                label="Email Address"
+                label={t('register.email')}
                 name="email"
                 type="email"
                 placeholder="jane@agency.com"
@@ -131,10 +133,10 @@ export default function RegisterPage() {
               />
               <div className="space-y-1">
                 <Input
-                  label="Password"
+                  label={t('register.password')}
                   name="password"
                   type="password"
-                  placeholder="Min. 8 characters"
+                  placeholder={t('register.passwordPlaceholder')}
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -154,16 +156,16 @@ export default function RegisterPage() {
                       ))}
                     </div>
                     <p className={`text-xs font-medium ${strength.score <= 2 ? 'text-amber-600' : 'text-emerald-600'}`}>
-                      {strength.label} password
+                      {t(`register.strength.${strength.label.toLowerCase()}`)} {t('register.strength.suffix')}
                     </p>
                   </div>
                 )}
               </div>
               <Input
-                label="Confirm Password"
+                label={t('register.confirmPassword')}
                 name="confirmPassword"
                 type="password"
-                placeholder="Re-enter password"
+                placeholder={t('register.confirmPasswordPlaceholder')}
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required
@@ -181,21 +183,21 @@ export default function RegisterPage() {
                 isLoading={isSubmitting}
                 disabled={isSubmitting}
               >
-                Create Agency Account
+                {t('register.submit')}
               </Button>
             </form>
 
             <div className="mt-6 text-center text-sm text-slate-600">
-              Already using Agency CRM?{' '}
+              {t('register.alreadyHave')}{' '}
               <Link href="/login" className="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
-                Sign In
+                {t('register.signIn')}
               </Link>
             </div>
           </CardContent>
         </Card>
 
         <p className="text-center text-xs text-slate-400">
-          By signing up, you agree to our Terms of Service and Privacy Policy.
+          {t('register.terms')}
         </p>
       </div>
     </div>

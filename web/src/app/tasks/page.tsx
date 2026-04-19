@@ -12,16 +12,19 @@ import { Modal } from '@/components/ui/Modal';
 import { toast } from 'sonner';
 import { ErrorState } from '@/components/ui/StateVisuals';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Clock, Plus, AlertCircle, CheckSquare } from 'lucide-react';
+import { Clock, Plus, CheckSquare } from 'lucide-react';
+import { Badge } from '@/components/ui/Badge';
+import { useTranslation } from 'react-i18next';
 
 // ─── Column config ────────────────────────────────────────────────────────────
-const COLUMNS = [
-  { id: 'Todo', title: 'To Do', color: 'bg-slate-100 text-slate-700 border-slate-200' },
-  { id: 'InProgress', title: 'In Progress', color: 'bg-blue-50 text-blue-700 border-blue-100' },
-  { id: 'Done', title: 'Completed', color: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
+const COLUMN_DEFS = [
+  { id: 'Todo', tKey: 'columns.todo', color: 'bg-slate-100 text-slate-700 border-slate-200' },
+  { id: 'InProgress', tKey: 'columns.inProgress', color: 'bg-blue-50 text-blue-700 border-blue-100' },
+  { id: 'Done', tKey: 'columns.completed', color: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
 ] as const;
 
 export default function TasksPage() {
+  const { t } = useTranslation('tasks');
   const { tasks, isLoading, error, createTask, isCreating } = useTasks();
   const { projects } = useProjects();
   const { logTime, isLoggingTime } = useTimeTracking();
@@ -85,23 +88,21 @@ export default function TasksPage() {
     <Container>
       <Section className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Project Tasks</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage workloads and log hours across active projects.
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">{t('heading')}</h1>
+          <p className="text-muted-foreground mt-1">{t('description')}</p>
         </div>
         <Button onClick={() => setIsModalOpen(true)} className="gap-2">
-          <Plus className="w-4 h-4" /> Add Task
+          <Plus className="w-4 h-4" /> {t('addButton')}
         </Button>
       </Section>
 
       {error && <ErrorState reset={() => window.location.reload()} />}
       {!error && !isLoading && tasks.length === 0 && (
-        <EmptyState 
+        <EmptyState
            icon={CheckSquare}
-           title="No tasks found"
-           description="Your agency's workload is clear. Start by adding a task to a project."
-           action={<Button onClick={() => setIsModalOpen(true)} className="gap-2"><Plus className="w-4 h-4" /> Add Your First Task</Button>}
+           title={t('empty.title')}
+           description={t('empty.description')}
+           action={<Button onClick={() => setIsModalOpen(true)} className="gap-2"><Plus className="w-4 h-4" /> {t('empty.button')}</Button>}
         />
       )}
 
@@ -115,14 +116,14 @@ export default function TasksPage() {
             />
           ))
         ) : tasks.length > 0 && (
-          COLUMNS.map((column) => {
-            const columnTasks = tasks.filter((t) => (t.status || 'Todo') === column.id);
+          COLUMN_DEFS.map((column) => {
+            const columnTasks = tasks.filter((task) => (task.status || 'Todo') === column.id);
             return (
               <div key={column.id} className="flex flex-col gap-4">
                 <div
                   className={`flex items-center justify-between p-3 rounded-lg border ${column.color}`}
                 >
-                  <h3 className="font-bold text-sm uppercase tracking-wider">{column.title}</h3>
+                  <h3 className="font-bold text-sm uppercase tracking-wider">{t(column.tKey)}</h3>
                   <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-white/50">
                     {columnTasks.length}
                   </span>
@@ -132,7 +133,7 @@ export default function TasksPage() {
                   {columnTasks.map((task) => (
                     <div
                       key={task.id}
-                      className="group bg-white p-4 rounded-xl border shadow-sm hover:shadow-md hover:border-blue-200 transition-all"
+                      className="group bg-surface p-4 rounded-xl border border-border shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:border-primary/30 transition-all"
                     >
                       <div className="flex justify-between items-start mb-2">
                         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground truncate max-w-[120px]">
@@ -144,7 +145,7 @@ export default function TasksPage() {
                               setSelectedTaskForTime(task);
                               setIsTimeModalOpen(true);
                             }}
-                            className="p-1 hover:bg-blue-50 text-blue-600 rounded"
+                            className="p-1 hover:bg-primary-subtle text-primary rounded-md transition-colors"
                             title="Log Hours"
                             aria-label={`Log hours for task: ${task.title}`}
                           >
@@ -152,12 +153,12 @@ export default function TasksPage() {
                           </button>
                         </div>
                       </div>
-                      <h4 className="font-semibold text-slate-900 mb-1">{task.title}</h4>
+                      <h4 className="font-semibold text-foreground mb-1">{task.title}</h4>
                       <p className="text-xs text-muted-foreground line-clamp-2 mb-4">
                         {task.description}
                       </p>
 
-                      <div className="flex items-center justify-between pt-3 border-t border-slate-50">
+                      <div className="flex items-center justify-between pt-3 border-t border-border">
                         <div className="flex -space-x-2">
                           <div
                             className="w-6 h-6 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-bold"
@@ -166,15 +167,12 @@ export default function TasksPage() {
                             ?
                           </div>
                         </div>
-                        <span
-                          className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                            task.priority === 'High'
-                              ? 'bg-rose-100 text-rose-700'
-                              : 'bg-slate-100 text-slate-600'
-                          }`}
+                        <Badge
+                          variant={task.priority === 'High' ? 'danger' : 'muted'}
+                          size="sm"
                         >
                           {task.priority || 'Normal'}
-                        </span>
+                        </Badge>
                       </div>
                     </div>
                   ))}
@@ -182,7 +180,7 @@ export default function TasksPage() {
                   {columnTasks.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-10 border-2 border-dashed rounded-xl opacity-30 capitalize">
                       <Plus className="w-8 h-8 mb-2" />
-                      <span className="text-sm font-medium">No {column.title} tasks</span>
+                      <span className="text-sm font-medium">No {t(column.tKey)} tasks</span>
                     </div>
                   )}
                 </div>

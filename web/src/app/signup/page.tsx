@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/LayoutPrimitives';
 import Link from 'next/link';
 import { Building2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 function getPasswordStrength(password: string): { score: number; label: string; color: string } {
   let score = 0;
@@ -34,6 +35,7 @@ export default function SignupPage() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { register, user, loading } = useAuth();
+  const { t } = useTranslation('auth');
   const router = useRouter();
 
   const strength = getPasswordStrength(formData.password);
@@ -50,24 +52,24 @@ export default function SignupPage() {
 
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
-    if (!formData.agencyName.trim()) errors.agencyName = 'Agency name is required.';
-    if (!formData.fullName.trim()) errors.fullName = 'Full name is required.';
+    if (!formData.agencyName.trim()) errors.agencyName = t('register.errors.agencyNameRequired');
+    if (!formData.fullName.trim()) errors.fullName = t('register.errors.fullNameRequired');
     if (!formData.email.trim()) {
-      errors.email = 'Email is required.';
+      errors.email = t('register.errors.emailRequired');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = 'Enter a valid email address.';
+      errors.email = t('register.errors.emailInvalid');
     }
     if (!formData.password) {
-      errors.password = 'Password is required.';
+      errors.password = t('register.errors.passwordRequired');
     } else if (formData.password.length < 8) {
-      errors.password = 'Password must be at least 8 characters.';
+      errors.password = t('register.errors.passwordTooShort');
     } else if (strength.score < 3) {
-      errors.password = 'Too weak — add uppercase letters, numbers, or symbols.';
+      errors.password = t('register.errors.passwordTooWeak');
     }
     if (!formData.confirmPassword) {
-      errors.confirmPassword = 'Please confirm your password.';
+      errors.confirmPassword = t('register.errors.confirmRequired');
     } else if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match.';
+      errors.confirmPassword = t('register.errors.confirmMismatch');
     }
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -81,7 +83,7 @@ export default function SignupPage() {
     try {
       await register(formData.email, formData.password, formData.fullName, formData.agencyName);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
+      setError(err instanceof Error ? err.message : t('register.errors.registrationFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -96,16 +98,16 @@ export default function SignupPage() {
           <div className="mx-auto mb-4 h-12 w-12 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-200">
             <Building2 className="text-white h-6 w-6" />
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">Create Agency Account</CardTitle>
-          <CardDescription>Join the lead-to-invoice platform built for agencies.</CardDescription>
+          <CardTitle className="text-2xl font-bold tracking-tight">{t('signup.title')}</CardTitle>
+          <CardDescription>{t('signup.subtitle')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignup} className="space-y-4" noValidate>
             <div className="bg-indigo-50/50 p-4 rounded-lg border border-indigo-100/50">
               <Input
-                label="Agency Name"
+                label={t('signup.agencyName')}
                 name="agencyName"
-                placeholder="e.g. Acme Marketing Group"
+                placeholder={t('signup.agencyNamePlaceholder')}
                 value={formData.agencyName}
                 onChange={handleChange}
                 required
@@ -114,19 +116,19 @@ export default function SignupPage() {
               />
             </div>
             <Input
-              label="Full Name"
+              label={t('signup.fullName')}
               name="fullName"
-              placeholder="John Doe"
+              placeholder={t('signup.fullNamePlaceholder')}
               value={formData.fullName}
               onChange={handleChange}
               required
               error={fieldErrors.fullName}
             />
             <Input
-              label="Email Address"
+              label={t('signup.email')}
               name="email"
               type="email"
-              placeholder="name@company.com"
+              placeholder={t('signup.emailPlaceholder')}
               value={formData.email}
               onChange={handleChange}
               required
@@ -134,10 +136,10 @@ export default function SignupPage() {
             />
             <div className="space-y-1">
               <Input
-                label="Password"
+                label={t('signup.password')}
                 name="password"
                 type="password"
-                placeholder="Min. 8 characters"
+                placeholder={t('signup.passwordPlaceholder')}
                 value={formData.password}
                 onChange={handleChange}
                 required
@@ -156,16 +158,16 @@ export default function SignupPage() {
                     ))}
                   </div>
                   <p className={`text-xs font-medium ${strength.score <= 2 ? 'text-amber-600' : 'text-emerald-600'}`}>
-                    {strength.label} password
+                    {t(`register.strength.${strength.label.toLowerCase()}`)} {t('register.strength.suffix')}
                   </p>
                 </div>
               )}
             </div>
             <Input
-              label="Confirm Password"
+              label={t('signup.confirmPassword')}
               name="confirmPassword"
               type="password"
-              placeholder="Re-enter password"
+              placeholder={t('signup.confirmPasswordPlaceholder')}
               value={formData.confirmPassword}
               onChange={handleChange}
               required
@@ -177,12 +179,12 @@ export default function SignupPage() {
               </div>
             )}
             <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700" isLoading={isSubmitting} disabled={isSubmitting}>
-              Create My Agency
+              {t('signup.submit')}
             </Button>
             <p className="text-center text-sm text-muted-foreground pt-2">
-              Already have an account?{' '}
+              {t('signup.alreadyHave')}{' '}
               <Link href="/login" className="font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
-                Sign In
+                {t('signup.signIn')}
               </Link>
             </p>
           </form>

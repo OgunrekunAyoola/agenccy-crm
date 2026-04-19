@@ -1,0 +1,13 @@
+{
+  "heading": "Agency Performance",
+  "recentActivity": "Recent Activity",
+  "roiHeading": "ROI & Performance Intelligence",
+  "stats": {
+    "totalRevenue": "Total Revenue (Paid)",
+    "totalAdSpend": "Total Ad Spend",
+    "activeProjects": "Active Projects",
+    "totalClients": "Total Clients",
+    "activeLeads": "Active Leads",
+    "pendingOffers": "Pending Offers"
+  }
+}

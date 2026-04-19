@@ -9,6 +9,8 @@
 !.env.example
 
 # --- .NET (Backend) ---
+**/appsettings.Development.json
+**/appsettings.Production.json
 **/bin/
 **/obj/
 **/App_Data/

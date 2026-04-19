@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/LayoutPrimitives';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Validate a redirect destination from the URL query string.
@@ -34,6 +35,7 @@ function LoginPageContent() {
   // login() owns its own navigation; this component should not race with it.
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { login, user, loading } = useAuth();
+  const { t } = useTranslation('auth');
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = getSafeRedirect(searchParams.get('redirect'));
@@ -61,9 +63,9 @@ function LoginPageContent() {
       setIsLoggingIn(false);
       // Show specific copy for rate-limiting, generic copy for everything else
       if (err instanceof Error && err.message.includes('429')) {
-        setError('Too many login attempts. Please wait a moment and try again.');
+        setError(t('login.errors.rateLimit'));
       } else {
-        setError('Invalid email or password. Please try again.');
+        setError(t('login.errors.invalid'));
       }
     } finally {
       setIsSubmitting(false);
@@ -77,13 +79,13 @@ function LoginPageContent() {
           <div className="mx-auto mb-4 h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
             <span className="text-white font-bold text-xl">A</span>
           </div>
-          <CardTitle>Welcome Back</CardTitle>
-          <p className="text-sm text-muted-foreground mt-2">Sign in to your Agency CRM account</p>
+          <CardTitle>{t('login.title')}</CardTitle>
+          <p className="text-sm text-muted-foreground mt-2">{t('login.subtitle')}</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <Input
-              label="Email Address"
+              label={t('login.email')}
               type="email"
               placeholder="name@company.com"
               value={email}
@@ -95,7 +97,7 @@ function LoginPageContent() {
             {/* Password field with show/hide toggle */}
             <div className="space-y-1.5">
               <label htmlFor="password-input" className="text-sm font-medium leading-none">
-                Password <span className="text-destructive" aria-hidden="true">*</span>
+                {t('login.password')} <span className="text-destructive" aria-hidden="true">*</span>
               </label>
               <div className="relative">
                 <input
@@ -116,7 +118,7 @@ function LoginPageContent() {
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground
                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? t('login.hidePassword') : t('login.showPassword')}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -129,7 +131,7 @@ function LoginPageContent() {
                 href="/forgot-password"
                 className="text-xs text-muted-foreground hover:text-primary transition-colors"
               >
-                Forgot password?
+                {t('login.forgotPassword')}
               </Link>
             </div>
 
@@ -149,7 +151,7 @@ function LoginPageContent() {
               aria-busy={isSubmitting}
               aria-disabled={isSubmitting}
             >
-              {isSubmitting ? 'Signing in…' : 'Sign In'}
+              {isSubmitting ? t('login.submitting') : t('login.submit')}
             </Button>
           </form>
         </CardContent>

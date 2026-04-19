@@ -1,0 +1,13 @@
+{
+  "heading": "Представяне на агенцията",
+  "recentActivity": "Последна активност",
+  "roiHeading": "ROI и анализ на ефективността",
+  "stats": {
+    "totalRevenue": "Общ приход (платен)",
+    "totalAdSpend": "Общ рекламен бюджет",
+    "activeProjects": "Активни проекти",
+    "totalClients": "Общо клиенти",
+    "activeLeads": "Активни потенциални клиенти",
+    "pendingOffers": "Чакащи оферти"
+  }
+}

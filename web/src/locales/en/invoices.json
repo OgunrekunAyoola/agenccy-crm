@@ -1,0 +1,8 @@
+{
+  "heading": "Invoices",
+  "description": "Track billings, payments, and account balances.",
+  "empty": {
+    "title": "No invoices found",
+    "description": "Generate invoices from projects or contracts to start tracking your agency's revenue."
+  }
+}

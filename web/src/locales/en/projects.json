@@ -1,0 +1,9 @@
+{
+  "heading": "Projects",
+  "addButton": "Add Project",
+  "empty": {
+    "title": "No projects found",
+    "description": "Start by creating your first project to manage delivery and tasks.",
+    "button": "Add Your First Project"
+  }
+}

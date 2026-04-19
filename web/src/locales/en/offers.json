@@ -1,0 +1,10 @@
+{
+  "heading": "Offers Pipeline",
+  "addButton": "New Offer",
+  "columns": {
+    "draft": "Draft",
+    "sent": "Sent",
+    "accepted": "Accepted",
+    "rejected": "Rejected"
+  }
+}

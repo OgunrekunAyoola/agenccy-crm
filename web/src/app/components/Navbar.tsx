@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { MobileDrawer } from './MobileDrawer';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   Users,
@@ -21,24 +22,29 @@ import {
   LogOut,
 } from 'lucide-react';
 
-export const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/clients', label: 'Clients', icon: Users },
-  { href: '/leads', label: 'Leads', icon: TrendingUp },
-  { href: '/offers', label: 'Offers', icon: FileText },
-  { href: '/projects', label: 'Projects', icon: Briefcase },
-  { href: '/tasks', label: 'Tasks', icon: CheckSquare },
-  { href: '/contracts', label: 'Contracts', icon: FileSignature },
-  { href: '/invoices', label: 'Invoices', icon: Receipt },
-  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/integrations', label: 'Integrations', icon: Plug },
-  { href: '/settings', label: 'Settings', icon: Settings },
+export const NAV_ITEM_DEFS = [
+  { href: '/dashboard', key: 'nav.dashboard', icon: LayoutDashboard },
+  { href: '/clients', key: 'nav.clients', icon: Users },
+  { href: '/leads', key: 'nav.leads', icon: TrendingUp },
+  { href: '/offers', key: 'nav.offers', icon: FileText },
+  { href: '/projects', key: 'nav.projects', icon: Briefcase },
+  { href: '/tasks', key: 'nav.tasks', icon: CheckSquare },
+  { href: '/contracts', key: 'nav.contracts', icon: FileSignature },
+  { href: '/invoices', key: 'nav.invoices', icon: Receipt },
+  { href: '/analytics', key: 'nav.analytics', icon: BarChart3 },
+  { href: '/integrations', key: 'nav.integrations', icon: Plug },
+  { href: '/settings', key: 'nav.settings', icon: Settings },
 ];
 
 export function Navbar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { t, i18n } = useTranslation();
+
+  const toggleLanguage = () => {
+    i18n.changeLanguage(i18n.language === 'en' ? 'bg' : 'en');
+  };
 
   const isActive = (href: string) =>
     href === '/dashboard' ? pathname === href : pathname.startsWith(href);
@@ -58,7 +64,7 @@ export function Navbar() {
 
             {/* Desktop nav links */}
             <div className="hidden lg:flex items-center gap-1 flex-1 overflow-x-auto">
-              {NAV_ITEMS.map(({ href, label, icon: Icon }) => (
+              {NAV_ITEM_DEFS.map(({ href, key, icon: Icon }) => (
                 <Link
                   key={href}
                   href={href}
@@ -69,7 +75,7 @@ export function Navbar() {
                   }`}
                 >
                   <Icon className="h-4 w-4" />
-                  {label}
+                  {t(key)}
                 </Link>
               ))}
             </div>
@@ -83,6 +89,16 @@ export function Navbar() {
                 </span>
               )}
 
+              {/* Language switcher — desktop */}
+              <button
+                onClick={toggleLanguage}
+                className="hidden lg:flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-semibold border border-muted-foreground/30 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors tracking-wide"
+                aria-label="Switch language"
+                title={i18n.language === 'en' ? 'Switch to Български' : 'Switch to English'}
+              >
+                {i18n.language === 'en' ? 'BG' : 'EN'}
+              </button>
+
               {/* Logout button — desktop */}
               <button
                 onClick={() => logout()}
@@ -90,7 +106,7 @@ export function Navbar() {
                 aria-label="Log out"
               >
                 <LogOut className="h-4 w-4" />
-                Logout
+                {t('nav.logout')}
               </button>
 
               {/* Hamburger — mobile only */}
@@ -113,7 +129,8 @@ export function Navbar() {
         id="mobile-nav-drawer"
         isOpen={isMobileOpen}
         onClose={() => setIsMobileOpen(false)}
-        navItems={NAV_ITEMS}
+        navItems={NAV_ITEM_DEFS.map(({ href, key, icon }) => ({ href, label: t(key), icon }))}
+        logoutLabel={t('nav.logout')}
         currentPath={pathname}
         user={user}
         onLogout={() => {
