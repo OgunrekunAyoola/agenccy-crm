@@ -16,6 +16,7 @@ interface MobileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   navItems: NavItem[];
+  logoutLabel: string;
   currentPath: string;
   user: User | null;
   onLogout: () => void;
@@ -26,6 +27,7 @@ export function MobileDrawer({
   isOpen,
   onClose,
   navItems,
+  logoutLabel,
   currentPath,
   user,
   onLogout,
@@ -163,7 +165,7 @@ export function MobileDrawer({
             className="flex w-full items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
           >
             <LogOut className="h-5 w-5 shrink-0" />
-            Log Out
+            {logoutLabel}
           </button>
         </div>
       </div>

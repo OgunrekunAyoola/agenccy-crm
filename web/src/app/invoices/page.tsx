@@ -15,8 +15,10 @@ import { useState } from 'react';
 import { InvoiceEditModal } from './components/InvoiceEditModal';
 import { Invoice } from '@/hooks/queries/useInvoices';
 import { AlertCircle, ReceiptText } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function InvoicesPage() {
+  const { t } = useTranslation('invoices');
   const { invoices, isLoading, error, updateStatus, isUpdatingStatus, recordPayment, isRecordingPayment } = useInvoices();
   const { projects } = useProjects();
   
@@ -84,8 +86,8 @@ export default function InvoicesPage() {
     <Container>
       <Section className="flex items-center justify-between">
         <div>
-            <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
-            <p className="text-muted-foreground mt-1">Track billings, payments, and account balances.</p>
+            <h1 className="text-3xl font-bold tracking-tight">{t('heading')}</h1>
+            <p className="text-muted-foreground mt-1">{t('description')}</p>
         </div>
       </Section>
 
@@ -162,10 +164,10 @@ export default function InvoicesPage() {
               {invoices.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={8} className="p-0">
-                    <EmptyState 
+                    <EmptyState
                         icon={ReceiptText}
-                        title="No invoices found"
-                        description="Generate invoices from projects or contracts to start tracking your agency's revenue."
+                        title={t('empty.title')}
+                        description={t('empty.description')}
                     />
                   </TableCell>
                 </TableRow>

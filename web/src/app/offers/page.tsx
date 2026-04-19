@@ -5,17 +5,19 @@ import { useOffers, OfferStatus } from '@/hooks/queries/useOffers';
 import { Button } from '@/components/ui/Button';
 import { Container, Section } from '@/components/ui/LayoutPrimitives';
 import { NewOfferModal } from './components/NewOfferModal';
-
-const COLUMN_NAMES = {
-  [OfferStatus.Draft]: 'Draft',
-  [OfferStatus.Sent]: 'Sent',
-  [OfferStatus.Accepted]: 'Accepted',
-  [OfferStatus.Rejected]: 'Rejected'
-};
+import { useTranslation } from 'react-i18next';
 
 export default function OffersPage() {
+  const { t } = useTranslation('offers');
   const { offers, isLoading, updateStatus, isUpdatingStatus } = useOffers();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const COLUMN_NAMES = {
+    [OfferStatus.Draft]: t('columns.draft'),
+    [OfferStatus.Sent]: t('columns.sent'),
+    [OfferStatus.Accepted]: t('columns.accepted'),
+    [OfferStatus.Rejected]: t('columns.rejected'),
+  };
 
   const handleDragStart = (e: React.DragEvent, offerId: string) => {
     e.dataTransfer.setData('offerId', offerId);
@@ -109,8 +111,8 @@ export default function OffersPage() {
   return (
     <Container>
       <Section className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Offers Pipeline</h1>
-        <Button onClick={() => setIsModalOpen(true)}>New Offer</Button>
+        <h1 className="text-3xl font-bold tracking-tight">{t('heading')}</h1>
+        <Button onClick={() => setIsModalOpen(true)}>{t('addButton')}</Button>
       </Section>
 
       <Section>

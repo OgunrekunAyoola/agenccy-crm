@@ -11,8 +11,10 @@ import { toast } from 'sonner';
 import { ErrorState } from '@/components/ui/StateVisuals';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Users, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function LeadsPage() {
+  const { t } = useTranslation('leads');
   const { leads, isLoading, error, createLead, isCreating, updateStatus, isUpdatingStatus } = useLeads();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'title' | 'date' | 'value'>('date');
@@ -59,8 +61,8 @@ export default function LeadsPage() {
     <Container>
       <Section className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Leads</h1>
-          <p className="text-muted-foreground mt-1">Manage your incoming opportunities and sales funnel.</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t('heading')}</h1>
+          <p className="text-muted-foreground mt-1">{t('description')}</p>
         </div>
         <div className="flex gap-3">
           <select 
@@ -72,7 +74,7 @@ export default function LeadsPage() {
             <option value="title">Sort by Name</option>
             <option value="value">Sort by Value</option>
           </select>
-          <Button onClick={() => setIsModalOpen(true)}>Add Lead</Button>
+          <Button onClick={() => setIsModalOpen(true)}>{t('addButton')}</Button>
         </div>
       </Section>
 
@@ -152,11 +154,11 @@ export default function LeadsPage() {
               {leads.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={7} className="p-0">
-                    <EmptyState 
+                    <EmptyState
                       icon={Users}
-                      title="No leads found"
-                      description="Start by adding your first sales opportunity to track your agency's growth."
-                      action={<Button onClick={() => setIsModalOpen(true)}>Add Your First Lead</Button>}
+                      title={t('empty.title')}
+                      description={t('empty.description')}
+                      action={<Button onClick={() => setIsModalOpen(true)}>{t('empty.button')}</Button>}
                     />
                   </TableCell>
                 </TableRow>

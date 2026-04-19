@@ -1,1 +1,15 @@
-{}
+{
+  "heading": "Project Tasks",
+  "description": "Manage workloads and log hours across active projects.",
+  "addButton": "Add Task",
+  "columns": {
+    "todo": "To Do",
+    "inProgress": "In Progress",
+    "completed": "Completed"
+  },
+  "empty": {
+    "title": "No tasks found",
+    "description": "Your agency's workload is clear. Start by adding a task to a project.",
+    "button": "Add Your First Task"
+  }
+}

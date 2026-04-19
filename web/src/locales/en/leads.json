@@ -1,1 +1,16 @@
-{}
+{
+  "heading": "Leads",
+  "description": "Manage your incoming opportunities and sales funnel.",
+  "addButton": "Add Lead",
+  "empty": {
+    "title": "No leads found",
+    "description": "Start by adding your first sales opportunity to track your agency's growth.",
+    "button": "Add Your First Lead"
+  },
+  "status": {
+    "new": "New",
+    "contacted": "Contacted",
+    "qualified": "Qualified",
+    "lost": "Lost"
+  }
+}

@@ -15,8 +15,10 @@ import { ROIAnalytics } from './components/ROIAnalytics';
 import { OnboardingChecklist } from '@/components/dashboard/OnboardingChecklist';
 import { ErrorState } from '@/components/ui/StateVisuals';
 import { AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function DashboardPageClient() {
+  const { t } = useTranslation('dashboard');
   const { data: stats, isLoading: statsLoading, error: statsError } = useStats();
   const { invoices, isLoading: invoicesLoading, error: invoicesError } = useInvoices();
   const { metrics, isLoading: metricsLoading } = useAdMetrics();
@@ -31,12 +33,12 @@ export default function DashboardPageClient() {
   const totalAdSpend = metrics.reduce((sum, m) => sum + m.spend, 0);
 
   const statCards = [
-    { title: 'Total Revenue (Paid)', value: invoicesError ? '—' : `$${totalRevenue.toLocaleString()}`, color: 'text-emerald-600', link: '/invoices' },
-    { title: 'Total Ad Spend', value: `$${totalAdSpend.toLocaleString()}`, color: 'text-rose-600', link: '/projects' },
-    { title: 'Active Projects', value: statsError ? '—' : (stats?.activeProjectsCount ?? 0), color: 'text-blue-600', link: '/projects' },
-    { title: 'Total Clients', value: statsError ? '—' : (stats?.totalClientsCount ?? 0), color: 'text-indigo-600', link: '/clients' },
-    { title: 'Active Leads', value: statsError ? '—' : (stats?.activeLeadsCount ?? 0), color: 'text-emerald-500', link: '/leads' },
-    { title: 'Pending Offers', value: statsError ? '—' : (stats?.pendingOffersCount ?? 0), color: 'text-amber-600', link: '/offers' },
+    { title: t('stats.totalRevenue'), value: invoicesError ? '—' : `$${totalRevenue.toLocaleString()}`, color: 'text-emerald-600', link: '/invoices' },
+    { title: t('stats.totalAdSpend'), value: `$${totalAdSpend.toLocaleString()}`, color: 'text-rose-600', link: '/projects' },
+    { title: t('stats.activeProjects'), value: statsError ? '—' : (stats?.activeProjectsCount ?? 0), color: 'text-blue-600', link: '/projects' },
+    { title: t('stats.totalClients'), value: statsError ? '—' : (stats?.totalClientsCount ?? 0), color: 'text-indigo-600', link: '/clients' },
+    { title: t('stats.activeLeads'), value: statsError ? '—' : (stats?.activeLeadsCount ?? 0), color: 'text-emerald-500', link: '/leads' },
+    { title: t('stats.pendingOffers'), value: statsError ? '—' : (stats?.pendingOffersCount ?? 0), color: 'text-amber-600', link: '/offers' },
   ];
 
   if (anyError) {
@@ -65,7 +67,7 @@ export default function DashboardPageClient() {
   return (
     <Container>
       <OnboardingChecklist />
-      <Section title="Agency Performance">
+      <Section title={t('heading')}>
         <div className="grid gap-6 md:grid-cols-3">
           {statCards.map((stat) => (
             <Card key={stat.title} className="hover:shadow-md transition-shadow">
@@ -82,10 +84,10 @@ export default function DashboardPageClient() {
           ))}
         </div>
       </Section>
-      <Section title="ROI & Performance Intelligence" className="mt-8">
+      <Section title={t('roiHeading')} className="mt-8">
         <ROIAnalytics />
       </Section>
-      <Section title="Recent Activity" className="mt-8">
+      <Section title={t('recentActivity')} className="mt-8">
         <Card>
           <CardContent className="py-6">
             <div className="space-y-4">

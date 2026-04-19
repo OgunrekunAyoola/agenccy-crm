@@ -1,1 +1,11 @@
-{}
+{
+  "heading": "Settings",
+  "description": "Manage your agency profile and global preferences.",
+  "sections": {
+    "businessIdentity": "Business Identity",
+    "billing": "Billing & Finance",
+    "changePassword": "Change Password"
+  },
+  "saveButton": "Save All Changes",
+  "passwordButton": "Update Password"
+}

@@ -16,8 +16,10 @@ import { toast } from 'sonner';
 import { ErrorState } from '@/components/ui/StateVisuals';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Briefcase, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function ProjectsPage() {
+  const { t } = useTranslation('projects');
   const { projects, isLoading, error, createProject, isCreating } = useProjects();
   const { clients } = useClients();
   const { generateContract, isGenerating } = useContracts();
@@ -80,8 +82,8 @@ export default function ProjectsPage() {
   return (
     <Container>
       <Section className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
-        <Button onClick={() => setIsModalOpen(true)}>Add Project</Button>
+        <h1 className="text-3xl font-bold tracking-tight">{t('heading')}</h1>
+        <Button onClick={() => setIsModalOpen(true)}>{t('addButton')}</Button>
       </Section>
 
       <Section>
@@ -140,11 +142,11 @@ export default function ProjectsPage() {
               {projects.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="p-0">
-                    <EmptyState 
+                    <EmptyState
                         icon={Briefcase}
-                        title="No projects found"
-                        description="Start by creating your first project to manage delivery and tasks."
-                        action={<Button onClick={() => setIsModalOpen(true)}>Add Your First Project</Button>}
+                        title={t('empty.title')}
+                        description={t('empty.description')}
+                        action={<Button onClick={() => setIsModalOpen(true)}>{t('empty.button')}</Button>}
                     />
                   </TableCell>
                 </TableRow>

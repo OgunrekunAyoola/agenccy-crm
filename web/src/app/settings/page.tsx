@@ -6,12 +6,14 @@ import { Input } from '@/components/ui/Input';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { ArrowLeft, Building2, CreditCard, Zap, Link as LinkIcon, AlertTriangle, Info, KeyRound } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useSettings } from '@/hooks/queries/useSettings';
 import { ErrorState } from '@/components/ui/StateVisuals';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 
 export default function SettingsPage() {
+  const { t } = useTranslation('settings');
   const { settings, isLoading, isBackendMissing, updateSettings, isSaving } = useSettings();
 
   // Local form state — seeded from the API (or defaults if API isn't available)
@@ -74,8 +76,8 @@ export default function SettingsPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-          <p className="text-muted-foreground">Manage your agency profile and global preferences.</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t('heading')}</h1>
+          <p className="text-muted-foreground">{t('description')}</p>
         </div>
       </Section>
 
@@ -127,7 +129,7 @@ export default function SettingsPage() {
               <Section className="bg-white p-6 rounded-xl border shadow-sm">
                 <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <Building2 className="h-5 w-5 text-blue-600" />
-                  Business Identity
+                  {t('sections.businessIdentity')}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
@@ -161,7 +163,7 @@ export default function SettingsPage() {
               <Section className="bg-white p-6 rounded-xl border shadow-sm">
                 <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <CreditCard className="h-5 w-5 text-emerald-600" />
-                  Billing &amp; Finance
+                  {t('sections.billing')}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
@@ -208,7 +210,7 @@ export default function SettingsPage() {
                   disabled={isBackendMissing}
                   title={isBackendMissing ? 'Settings API not yet available' : undefined}
                 >
-                  {isBackendMissing ? 'Save (API Unavailable)' : 'Save All Changes'}
+                  {isBackendMissing ? 'Save (API Unavailable)' : t('saveButton')}
                 </Button>
               </div>
             </form>
@@ -219,7 +221,7 @@ export default function SettingsPage() {
             <Section className="bg-white p-6 rounded-xl border shadow-sm">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <KeyRound className="h-5 w-5 text-rose-600" />
-                Change Password
+                {t('sections.changePassword')}
               </h2>
               <div className="space-y-4 max-w-sm">
                 <Input
@@ -258,7 +260,7 @@ export default function SettingsPage() {
                   variant="secondary"
                   className="px-6"
                 >
-                  Update Password
+                  {t('passwordButton')}
                 </Button>
               </div>
             </Section>

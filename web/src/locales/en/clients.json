@@ -1,1 +1,10 @@
-{}
+{
+  "heading": "Clients",
+  "description": "Manage your active accounts and business relationships.",
+  "addButton": "Add Client",
+  "empty": {
+    "title": "No clients found",
+    "description": "Active leads will appear here once converted, or you can add a client manually.",
+    "button": "Add Your First Client"
+  }
+}

@@ -12,8 +12,10 @@ import { toast } from 'sonner';
 import { ErrorState } from '@/components/ui/StateVisuals';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Building2, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function ClientsPage() {
+  const { t } = useTranslation('clients');
   const { clients, isLoading, error, createClient, isCreating } = useClients();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'priority' | 'date'>('date');
@@ -54,8 +56,8 @@ export default function ClientsPage() {
     <Container>
       <Section className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Clients</h1>
-          <p className="text-muted-foreground mt-1">Manage your active accounts and business relationships.</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t('heading')}</h1>
+          <p className="text-muted-foreground mt-1">{t('description')}</p>
         </div>
         <div className="flex gap-3">
           <select 
@@ -67,7 +69,7 @@ export default function ClientsPage() {
             <option value="name">Sort by Name</option>
             <option value="priority">Sort by Priority</option>
           </select>
-          <Button onClick={() => setIsModalOpen(true)}>Add Client</Button>
+          <Button onClick={() => setIsModalOpen(true)}>{t('addButton')}</Button>
         </div>
       </Section>
 
@@ -126,11 +128,11 @@ export default function ClientsPage() {
               {sortedClients.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="p-0">
-                    <EmptyState 
+                    <EmptyState
                         icon={Building2}
-                        title="No clients found"
-                        description="Active leads will appear here once converted, or you can add a client manually."
-                        action={<Button onClick={() => setIsModalOpen(true)}>Add Your First Client</Button>}
+                        title={t('empty.title')}
+                        description={t('empty.description')}
+                        action={<Button onClick={() => setIsModalOpen(true)}>{t('empty.button')}</Button>}
                     />
                   </TableCell>
                 </TableRow>
