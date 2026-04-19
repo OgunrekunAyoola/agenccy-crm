@@ -108,7 +108,7 @@ export function MobileDrawer({
         role="dialog"
         aria-modal="true"
         aria-label="Navigation menu"
-        className="fixed inset-y-0 left-0 z-50 w-72 bg-background shadow-2xl flex flex-col lg:hidden animate-in slide-in-from-left duration-200"
+        className="fixed inset-y-0 left-0 z-50 w-72 bg-surface shadow-[var(--shadow-2xl)] flex flex-col lg:hidden animate-in slide-in-from-left duration-200"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
@@ -146,8 +146,8 @@ export function MobileDrawer({
                   onClick={onClose}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
                     isActive(href)
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      ? 'bg-primary-subtle text-primary'
+                      : 'text-foreground-muted hover:bg-muted hover:text-foreground'
                   }`}
                 >
                   <Icon className="h-5 w-5 shrink-0" />
@@ -162,7 +162,7 @@ export function MobileDrawer({
         <div className="p-4 border-t">
           <button
             onClick={onLogout}
-            className="flex w-full items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+            className="flex w-full items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground-muted hover:bg-danger-subtle hover:text-danger transition-colors"
           >
             <LogOut className="h-5 w-5 shrink-0" />
             {logoutLabel}

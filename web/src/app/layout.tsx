@@ -2,8 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 
-import { NavbarWrapper } from './components/NavbarWrapper';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { AppShell } from './components/AppShell';
 import { AuthProvider } from '@/hooks/useAuth';
 import { QueryProvider } from '@/components/providers/QueryProvider';
 import { ToasterProvider } from '@/components/providers/ToasterProvider';
@@ -39,21 +38,16 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background">
+      <body className="h-full bg-background">
         <I18nProvider>
-        <QueryProvider>
-          <AuthProvider>
-            {/* NavbarWrapper hides the nav on /portal/* and /login */}
-            <NavbarWrapper />
-            <FailsafeProvider>
-              <main className="flex-1 container mx-auto px-4 py-8">
-                <Breadcrumbs />
-                {children}
-              </main>
-            </FailsafeProvider>
-            <ToasterProvider />
-          </AuthProvider>
-        </QueryProvider>
+          <QueryProvider>
+            <AuthProvider>
+              <FailsafeProvider>
+                <AppShell>{children}</AppShell>
+              </FailsafeProvider>
+              <ToasterProvider />
+            </AuthProvider>
+          </QueryProvider>
         </I18nProvider>
       </body>
     </html>
