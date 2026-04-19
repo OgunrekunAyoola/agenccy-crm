@@ -1,0 +1,50 @@
+{
+  "lang": {
+    "en": "English",
+    "bg": "Български",
+    "switcher_label": "Language"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "clients": "Clients",
+    "leads": "Leads",
+    "offers": "Offers",
+    "projects": "Projects",
+    "tasks": "Tasks",
+    "contracts": "Contracts",
+    "invoices": "Invoices",
+    "analytics": "Analytics",
+    "integrations": "Integrations",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "confirm": "Confirm",
+    "back": "Back",
+    "continue": "Continue",
+    "submit": "Submit",
+    "close": "Close",
+    "loading": "Loading…"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "draft": "Draft"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "not_found": "Not found.",
+    "unauthorized": "You are not authorized to view this page."
+  }
+}

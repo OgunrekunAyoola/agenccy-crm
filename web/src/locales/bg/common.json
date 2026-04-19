@@ -1,0 +1,50 @@
+{
+  "lang": {
+    "en": "English",
+    "bg": "Български",
+    "switcher_label": "Език"
+  },
+  "nav": {
+    "dashboard": "Табло",
+    "clients": "Клиенти",
+    "leads": "Потенциални клиенти",
+    "offers": "Оферти",
+    "projects": "Проекти",
+    "tasks": "Задачи",
+    "contracts": "Договори",
+    "invoices": "Фактури",
+    "analytics": "Анализи",
+    "integrations": "Интеграции",
+    "settings": "Настройки",
+    "logout": "Изход"
+  },
+  "actions": {
+    "save": "Запази",
+    "cancel": "Откажи",
+    "delete": "Изтрий",
+    "edit": "Редактирай",
+    "create": "Създай",
+    "search": "Търси",
+    "filter": "Филтрирай",
+    "export": "Експортирай",
+    "confirm": "Потвърди",
+    "back": "Назад",
+    "continue": "Продължи",
+    "submit": "Изпрати",
+    "close": "Затвори",
+    "loading": "Зарежда се…"
+  },
+  "status": {
+    "active": "Активен",
+    "inactive": "Неактивен",
+    "pending": "Изчакващ",
+    "completed": "Завършен",
+    "cancelled": "Отменен",
+    "draft": "Чернова"
+  },
+  "errors": {
+    "generic": "Нещо се обърка. Моля, опитайте отново.",
+    "not_found": "Не е намерено.",
+    "unauthorized": "Нямате право да видите тази страница."
+  }
+}

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { MobileDrawer } from './MobileDrawer';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   Users,
@@ -39,6 +40,11 @@ export function Navbar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { i18n } = useTranslation();
+
+  const toggleLanguage = () => {
+    i18n.changeLanguage(i18n.language === 'en' ? 'bg' : 'en');
+  };
 
   const isActive = (href: string) =>
     href === '/dashboard' ? pathname === href : pathname.startsWith(href);
@@ -82,6 +88,16 @@ export function Navbar() {
                   {user.fullName || user.email}
                 </span>
               )}
+
+              {/* Language switcher — desktop */}
+              <button
+                onClick={toggleLanguage}
+                className="hidden lg:flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-semibold border border-muted-foreground/30 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors tracking-wide"
+                aria-label="Switch language"
+                title={i18n.language === 'en' ? 'Switch to Български' : 'Switch to English'}
+              >
+                {i18n.language === 'en' ? 'BG' : 'EN'}
+              </button>
 
               {/* Logout button — desktop */}
               <button
