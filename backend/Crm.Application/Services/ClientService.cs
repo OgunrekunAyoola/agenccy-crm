@@ -24,65 +24,77 @@ public class ClientService
         IGenericRepository<AdMetric> adMetrics,
         ICurrentUserContext currentUserContext)
     {
-        _repository = repository;
-        _projects = projects;
-        _leads = leads;
-        _offers = offers;
-        _invoices = invoices;
-        _adMetrics = adMetrics;
+        _repository   = repository;
+        _projects     = projects;
+        _leads        = leads;
+        _offers       = offers;
+        _invoices     = invoices;
+        _adMetrics    = adMetrics;
         _currentUserContext = currentUserContext;
     }
 
     public async Task<IEnumerable<ClientResponse>> GetAllAsync()
     {
-        var clients = await _repository.GetAllAsync();
-        return clients.Select(c => new ClientResponse
-        {
-            Id = c.Id,
-            Name = c.Name,
-            LegalName = c.LegalName,
-            VatNumber = c.VatNumber,
-            BusinessAddress = c.BusinessAddress,
-            Industry = c.Industry,
-            Priority = c.Priority,
-            CreatedAt = c.CreatedAt
-        }).ToList();
+        var clients = await _repository.AsQueryable()
+            .Include(c => c.Contacts)
+            .ToListAsync();
+
+        return clients.Select(MapToResponse).ToList();
     }
 
     public async Task<ClientResponse> CreateAsync(CreateClientRequest request)
     {
+        var tenantId = _currentUserContext.TenantId ?? Guid.Empty;
+
         var client = new Client
         {
-            Id = Guid.NewGuid(),
-            Name = request.Name,
-            LegalName = request.LegalName,
-            VatNumber = request.VatNumber,
+            Id              = Guid.NewGuid(),
+            Name            = request.Name,
+            LegalName       = request.LegalName,
+            VatNumber       = request.VatNumber,
             BusinessAddress = request.BusinessAddress,
-            Industry = request.Industry,
-            Priority = request.Priority,
-            TenantId = _currentUserContext.TenantId ?? Guid.Empty
+            Industry        = request.Industry,
+            Priority        = request.Priority,
+            TenantId        = tenantId,
         };
+
+        if (request.CommercialContact is { } cc && !string.IsNullOrWhiteSpace(cc.FirstName))
+        {
+            client.Contacts.Add(new Contact
+            {
+                Id        = Guid.NewGuid(),
+                FirstName = cc.FirstName,
+                LastName  = cc.LastName,
+                Email     = cc.Email,
+                Phone     = cc.Phone,
+                Type      = ContactType.Commercial,
+                TenantId  = tenantId,
+            });
+        }
+
+        if (request.FinancialContact is { } fc && !string.IsNullOrWhiteSpace(fc.FirstName))
+        {
+            client.Contacts.Add(new Contact
+            {
+                Id        = Guid.NewGuid(),
+                FirstName = fc.FirstName,
+                LastName  = fc.LastName,
+                Email     = fc.Email,
+                Phone     = fc.Phone,
+                Type      = ContactType.Financial,
+                TenantId  = tenantId,
+            });
+        }
 
         await _repository.AddAsync(client);
         await _repository.SaveChangesAsync();
 
-        return new ClientResponse
-        {
-            Id = client.Id,
-            Name = client.Name,
-            LegalName = client.LegalName,
-            VatNumber = client.VatNumber,
-            BusinessAddress = client.BusinessAddress,
-            Industry = client.Industry,
-            Priority = client.Priority,
-            CreatedAt = client.CreatedAt
-        };
+        return MapToResponse(client);
     }
 
     /// <summary>
     /// Returns aggregated dashboard metrics for a single client.
     /// All queries rely on EF Core global tenant filter — no explicit TenantId filter needed.
-    /// Returns null if the client is not found or belongs to another tenant.
     /// </summary>
     public async Task<ClientDashboardDto?> GetDashboardAsync(Guid clientId)
     {
@@ -91,7 +103,6 @@ public class ClientService
 
         if (client == null) return null;
 
-        // Projects owned by this client
         var clientProjectIds = await _projects.AsQueryable()
             .Where(p => p.ClientId == clientId)
             .Select(p => p.Id)
@@ -100,19 +111,15 @@ public class ClientService
         var activeProjectsCount = await _projects.AsQueryable()
             .CountAsync(p => p.ClientId == clientId && p.Status == ProjectStatus.Active);
 
-        // Leads that have been converted to this client
         var openLeadsCount = await _leads.AsQueryable()
             .CountAsync(l => l.ConvertedClientId == clientId &&
-                             (l.Status == LeadStatus.New || l.Status == LeadStatus.Contacted || l.Status == LeadStatus.Qualified));
+                (l.Status == LeadStatus.New || l.Status == LeadStatus.Contacted || l.Status == LeadStatus.Qualified));
 
-        // Offers tied to leads that converted to this client
         var pendingOffersCount = await _offers.AsQueryable()
             .Where(o => o.Lead != null && o.Lead.ConvertedClientId == clientId)
             .CountAsync(o => o.Status == OfferStatus.Draft || o.Status == OfferStatus.Sent);
 
-        // Invoice financials
-        // Cast to double before SumAsync — SQLite does not support Sum on decimal columns.
-        // PostgreSQL handles decimal Sum natively; the cast is a no-op there.
+        // Cast to double — SQLite does not support Sum on decimal columns.
         var totalInvoiced = (decimal)(await _invoices.AsQueryable()
             .Where(i => i.ClientId == clientId)
             .SumAsync(i => (double?)i.TotalAmount) ?? 0d);
@@ -121,7 +128,6 @@ public class ClientService
             .Where(i => i.ClientId == clientId && i.Status == InvoiceStatus.Paid)
             .SumAsync(i => (double?)i.TotalAmount) ?? 0d);
 
-        // Ad spend: all AdMetrics across all projects belonging to this client
         var totalAdSpend = clientProjectIds.Any()
             ? (decimal)(await _adMetrics.AsQueryable()
                 .Where(m => clientProjectIds.Contains(m.ProjectId))
@@ -130,18 +136,38 @@ public class ClientService
 
         return new ClientDashboardDto
         {
-            Id = client.Id,
-            Name = client.Name,
-            LegalName = client.LegalName,
-            Industry = client.Industry,
-            BusinessAddress = client.BusinessAddress,
+            Id                  = client.Id,
+            Name                = client.Name,
+            LegalName           = client.LegalName,
+            Industry            = client.Industry,
+            BusinessAddress     = client.BusinessAddress,
             ActiveProjectsCount = activeProjectsCount,
-            OpenLeadsCount = openLeadsCount,
-            PendingOffersCount = pendingOffersCount,
-            TotalInvoiced = totalInvoiced,
-            TotalPaid = totalPaid,
-            TotalOutstanding = totalInvoiced - totalPaid,
-            TotalAdSpend = totalAdSpend
+            OpenLeadsCount      = openLeadsCount,
+            PendingOffersCount  = pendingOffersCount,
+            TotalInvoiced       = totalInvoiced,
+            TotalPaid           = totalPaid,
+            TotalOutstanding    = totalInvoiced - totalPaid,
+            TotalAdSpend        = totalAdSpend,
         };
     }
+
+    private static ClientResponse MapToResponse(Client c) => new()
+    {
+        Id              = c.Id,
+        Name            = c.Name,
+        LegalName       = c.LegalName,
+        VatNumber       = c.VatNumber,
+        BusinessAddress = c.BusinessAddress,
+        Industry        = c.Industry,
+        Priority        = c.Priority,
+        CreatedAt       = c.CreatedAt,
+        Contacts        = c.Contacts.Select(ct => new ContactResponse
+        {
+            FirstName = ct.FirstName,
+            LastName  = ct.LastName,
+            Email     = ct.Email,
+            Phone     = ct.Phone,
+            Type      = ct.Type,
+        }).ToList(),
+    };
 }
