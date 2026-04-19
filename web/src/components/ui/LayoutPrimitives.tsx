@@ -1,34 +1,82 @@
 import { ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 
-export const Card = ({ children, className = '' }: { children: ReactNode; className?: string }) => (
-  <div className={`rounded-xl border border-border bg-card text-card-foreground shadow-sm ${className}`}>
+// ── Card ─────────────────────────────────────────────────────────────────────
+
+interface CardProps {
+  children: ReactNode;
+  className?: string;
+  variant?: 'default' | 'raised' | 'flat' | 'bordered';
+}
+
+const cardVariants: Record<string, string> = {
+  default:  'bg-surface border border-border shadow-[var(--shadow-sm)]',
+  raised:   'bg-surface border border-border shadow-[var(--shadow-md)]',
+  flat:     'bg-surface-sunken border border-transparent',
+  bordered: 'bg-surface border-2 border-border',
+};
+
+export const Card = ({ children, className = '', variant = 'default' }: CardProps) => (
+  <div className={cn('rounded-xl', cardVariants[variant], className)}>
     {children}
   </div>
 );
 
 export const CardHeader = ({ children, className = '' }: { children: ReactNode; className?: string }) => (
-  <div className={`flex flex-col space-y-1.5 p-6 ${className}`}>{children}</div>
+  <div className={cn('flex flex-col space-y-1.5 p-6', className)}>{children}</div>
 );
 
 export const CardTitle = ({ children, className = '' }: { children: ReactNode; className?: string }) => (
-  <h3 className={`text-2xl font-semibold leading-none tracking-tight ${className}`}>{children}</h3>
+  <h3 className={cn('text-base font-semibold leading-none tracking-tight text-foreground', className)}>
+    {children}
+  </h3>
 );
 
 export const CardDescription = ({ children, className = '' }: { children: ReactNode; className?: string }) => (
-  <p className={`text-sm text-muted-foreground ${className}`}>{children}</p>
+  <p className={cn('text-sm text-foreground-muted leading-relaxed', className)}>{children}</p>
 );
 
 export const CardContent = ({ children, className = '' }: { children: ReactNode; className?: string }) => (
-  <div className={`p-6 pt-0 ${className}`}>{children}</div>
+  <div className={cn('p-6 pt-0', className)}>{children}</div>
 );
+
+export const CardFooter = ({ children, className = '' }: { children: ReactNode; className?: string }) => (
+  <div className={cn('flex items-center p-6 pt-0 gap-3', className)}>{children}</div>
+);
+
+// ── Layout ────────────────────────────────────────────────────────────────────
 
 export const Container = ({ children, className = '' }: { children: ReactNode; className?: string }) => (
-  <div className={`container mx-auto px-4 md:px-6 lg:px-8 ${className}`}>{children}</div>
+  <div className={cn('mx-auto w-full max-w-screen-xl px-4 md:px-6 lg:px-8', className)}>
+    {children}
+  </div>
 );
 
-export const Section = ({ children, title, className = '' }: { children: ReactNode; title?: string; className?: string }) => (
-  <section className={`py-8 md:py-12 ${className}`}>
-    {title && <h2 className="mb-6 text-3xl font-bold tracking-tight">{title}</h2>}
+interface SectionProps {
+  children: ReactNode;
+  title?: string;
+  description?: string;
+  className?: string;
+}
+
+export const Section = ({ children, title, description, className = '' }: SectionProps) => (
+  <section className={cn('py-6', className)}>
+    {(title || description) && (
+      <div className="mb-5">
+        {title && (
+          <h2 className="text-xl font-semibold tracking-tight text-foreground">{title}</h2>
+        )}
+        {description && (
+          <p className="mt-1 text-sm text-foreground-muted">{description}</p>
+        )}
+      </div>
+    )}
     {children}
   </section>
+);
+
+// ── Divider ───────────────────────────────────────────────────────────────────
+
+export const Divider = ({ className = '' }: { className?: string }) => (
+  <hr className={cn('border-border', className)} />
 );
