@@ -5,13 +5,15 @@ import Link from 'next/link';
 import { useClients, PriorityTier } from '@/hooks/queries/useClients';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import { Container, Section } from '@/components/ui/LayoutPrimitives';
 import { Modal } from '@/components/ui/Modal';
 import { toast } from 'sonner';
 import { ErrorState } from '@/components/ui/StateVisuals';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Building2, AlertCircle } from 'lucide-react';
+import { Building2 } from 'lucide-react';
+import { Badge } from '@/components/ui/Badge';
 import { useTranslation } from 'react-i18next';
 
 export default function ClientsPage() {
@@ -60,15 +62,16 @@ export default function ClientsPage() {
           <p className="text-muted-foreground mt-1">{t('description')}</p>
         </div>
         <div className="flex gap-3">
-          <select 
-            className="border rounded px-3 py-2 bg-background text-sm"
+          <Select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-          >
-            <option value="date">Sort by Date</option>
-            <option value="name">Sort by Name</option>
-            <option value="priority">Sort by Priority</option>
-          </select>
+            onChange={(e) => setSortBy(e.target.value as 'name' | 'priority' | 'date')}
+            options={[
+              { label: 'Sort by Date', value: 'date' },
+              { label: 'Sort by Name', value: 'name' },
+              { label: 'Sort by Priority', value: 'priority' },
+            ]}
+            className="w-40"
+          />
           <Button onClick={() => setIsModalOpen(true)}>{t('addButton')}</Button>
         </div>
       </Section>
@@ -99,7 +102,7 @@ export default function ClientsPage() {
                   <TableCell>
                     <Link
                       href={`/clients/${c.id}`}
-                      className="block hover:text-indigo-600 transition-colors"
+                      className="block hover:text-primary transition-colors"
                     >
                       <div className="font-medium">{c.name}</div>
                       <div className="text-xs text-muted-foreground">{c.legalName}</div>
@@ -109,13 +112,15 @@ export default function ClientsPage() {
                     <span className="text-sm">{c.industry || '-'}</span>
                   </TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        c.priority === PriorityTier.Tier1 ? 'bg-purple-100 text-purple-800' :
-                        c.priority === PriorityTier.Tier2 ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                    }`}>
-                        {PriorityTier[c.priority]}
-                    </span>
+                    <Badge
+                      variant={
+                        c.priority === PriorityTier.Tier1 ? 'primary' :
+                        c.priority === PriorityTier.Tier2 ? 'info' : 'muted'
+                      }
+                      size="sm"
+                    >
+                      {PriorityTier[c.priority]}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <code className="text-xs">{c.vatNumber || '-'}</code>
@@ -171,18 +176,16 @@ export default function ClientsPage() {
               value={newClient.vatNumber}
               onChange={(e) => setNewClient({ ...newClient, vatNumber: e.target.value })}
             />
-            <div className="space-y-2">
-                <label className="text-sm font-medium">Priority Tier</label>
-                <select 
-                    className="w-full border rounded px-3 py-2 bg-background"
-                    value={newClient.priority}
-                    onChange={(e) => setNewClient({ ...newClient, priority: parseInt(e.target.value) })}
-                >
-                    <option value={PriorityTier.Tier1}>Tier 1 (High)</option>
-                    <option value={PriorityTier.Tier2}>Tier 2 (Medium)</option>
-                    <option value={PriorityTier.Tier3}>Tier 3 (Low)</option>
-                </select>
-            </div>
+            <Select
+              label="Priority Tier"
+              value={newClient.priority}
+              onChange={(e) => setNewClient({ ...newClient, priority: parseInt(e.target.value) })}
+              options={[
+                { label: 'Tier 1 (High)', value: PriorityTier.Tier1 },
+                { label: 'Tier 2 (Medium)', value: PriorityTier.Tier2 },
+                { label: 'Tier 3 (Low)', value: PriorityTier.Tier3 },
+              ]}
+            />
           </div>
 
           <Input

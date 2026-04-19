@@ -12,7 +12,8 @@ import { Modal } from '@/components/ui/Modal';
 import { toast } from 'sonner';
 import { ErrorState } from '@/components/ui/StateVisuals';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Clock, Plus, AlertCircle, CheckSquare } from 'lucide-react';
+import { Clock, Plus, CheckSquare } from 'lucide-react';
+import { Badge } from '@/components/ui/Badge';
 import { useTranslation } from 'react-i18next';
 
 // ─── Column config ────────────────────────────────────────────────────────────
@@ -132,7 +133,7 @@ export default function TasksPage() {
                   {columnTasks.map((task) => (
                     <div
                       key={task.id}
-                      className="group bg-white p-4 rounded-xl border shadow-sm hover:shadow-md hover:border-blue-200 transition-all"
+                      className="group bg-surface p-4 rounded-xl border border-border shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:border-primary/30 transition-all"
                     >
                       <div className="flex justify-between items-start mb-2">
                         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground truncate max-w-[120px]">
@@ -144,7 +145,7 @@ export default function TasksPage() {
                               setSelectedTaskForTime(task);
                               setIsTimeModalOpen(true);
                             }}
-                            className="p-1 hover:bg-blue-50 text-blue-600 rounded"
+                            className="p-1 hover:bg-primary-subtle text-primary rounded-md transition-colors"
                             title="Log Hours"
                             aria-label={`Log hours for task: ${task.title}`}
                           >
@@ -152,12 +153,12 @@ export default function TasksPage() {
                           </button>
                         </div>
                       </div>
-                      <h4 className="font-semibold text-slate-900 mb-1">{task.title}</h4>
+                      <h4 className="font-semibold text-foreground mb-1">{task.title}</h4>
                       <p className="text-xs text-muted-foreground line-clamp-2 mb-4">
                         {task.description}
                       </p>
 
-                      <div className="flex items-center justify-between pt-3 border-t border-slate-50">
+                      <div className="flex items-center justify-between pt-3 border-t border-border">
                         <div className="flex -space-x-2">
                           <div
                             className="w-6 h-6 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-bold"
@@ -166,15 +167,12 @@ export default function TasksPage() {
                             ?
                           </div>
                         </div>
-                        <span
-                          className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                            task.priority === 'High'
-                              ? 'bg-rose-100 text-rose-700'
-                              : 'bg-slate-100 text-slate-600'
-                          }`}
+                        <Badge
+                          variant={task.priority === 'High' ? 'danger' : 'muted'}
+                          size="sm"
                         >
                           {task.priority || 'Normal'}
-                        </span>
+                        </Badge>
                       </div>
                     </div>
                   ))}

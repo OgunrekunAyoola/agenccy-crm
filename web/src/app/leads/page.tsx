@@ -4,13 +4,15 @@ import { useState } from 'react';
 import { useLeads, LeadStatus, LeadSource, ServiceType } from '@/hooks/queries/useLeads';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { StatusBadge, Badge } from '@/components/ui/Badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import { Container, Section } from '@/components/ui/LayoutPrimitives';
 import { Modal } from '@/components/ui/Modal';
 import { toast } from 'sonner';
 import { ErrorState } from '@/components/ui/StateVisuals';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Users, AlertCircle } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function LeadsPage() {
@@ -18,8 +20,8 @@ export default function LeadsPage() {
   const { leads, isLoading, error, createLead, isCreating, updateStatus, isUpdatingStatus } = useLeads();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'title' | 'date' | 'value'>('date');
-  const [newLead, setNewLead] = useState({ 
-    title: '', 
+  const [newLead, setNewLead] = useState({
+    title: '',
     description: '',
     contactName: '',
     email: '',
@@ -27,15 +29,15 @@ export default function LeadsPage() {
     companyName: '',
     source: LeadSource.Manual,
     interest: ServiceType.Other,
-    budgetRange: ''
+    budgetRange: '',
   });
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await createLead(newLead);
-      setNewLead({ 
-        title: '', 
+      setNewLead({
+        title: '',
         description: '',
         contactName: '',
         email: '',
@@ -43,7 +45,7 @@ export default function LeadsPage() {
         companyName: '',
         source: LeadSource.Manual,
         interest: ServiceType.Other,
-        budgetRange: ''
+        budgetRange: '',
       });
       setIsModalOpen(false);
     } catch {
@@ -62,18 +64,19 @@ export default function LeadsPage() {
       <Section className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t('heading')}</h1>
-          <p className="text-muted-foreground mt-1">{t('description')}</p>
+          <p className="text-foreground-muted mt-1">{t('description')}</p>
         </div>
         <div className="flex gap-3">
-          <select 
-            className="border rounded px-3 py-2 bg-background text-sm"
+          <Select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-          >
-            <option value="date">Sort by Date</option>
-            <option value="title">Sort by Name</option>
-            <option value="value">Sort by Value</option>
-          </select>
+            onChange={(e) => setSortBy(e.target.value as 'title' | 'date' | 'value')}
+            options={[
+              { label: 'Sort by Date', value: 'date' },
+              { label: 'Sort by Name', value: 'title' },
+              { label: 'Sort by Value', value: 'value' },
+            ]}
+            className="w-40"
+          />
           <Button onClick={() => setIsModalOpen(true)}>{t('addButton')}</Button>
         </div>
       </Section>
@@ -84,7 +87,7 @@ export default function LeadsPage() {
         ) : isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-12 w-full bg-muted animate-pulse rounded" />
+              <div key={i} className="h-12 w-full bg-muted animate-pulse rounded-lg" />
             ))}
           </div>
         ) : (
@@ -97,57 +100,48 @@ export default function LeadsPage() {
                 <TableHead>Interest</TableHead>
                 <TableHead>Value</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="text-right">Change Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedLeads.map((l) => (
                 <TableRow key={l.id}>
                   <TableCell>
-                    <div className="font-medium">{l.title}</div>
-                    <div className="text-xs text-muted-foreground">{l.companyName}</div>
+                    <div className="font-medium text-foreground">{l.title}</div>
+                    <div className="text-xs text-foreground-muted">{l.companyName}</div>
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm">{l.contactName}</div>
-                    <div className="text-xs text-muted-foreground">{l.email}</div>
+                    <div className="text-sm text-foreground">{l.contactName}</div>
+                    <div className="text-xs text-foreground-muted">{l.email}</div>
                   </TableCell>
                   <TableCell>
-                    <span className="text-xs border px-2 py-0.5 rounded bg-muted">
-                        {LeadSource[l.source]}
-                    </span>
+                    <Badge variant="outline" size="sm">{LeadSource[l.source]}</Badge>
                   </TableCell>
                   <TableCell>
-                    <span className="text-xs">
-                        {ServiceType[l.interest]}
-                    </span>
+                    <span className="text-sm text-foreground-muted">{ServiceType[l.interest]}</span>
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium text-emerald-600">
-                        {l.dealValue ? `$${l.dealValue.toLocaleString()}` : '-'}
+                    <div className="font-medium text-success">
+                      {l.dealValue ? `$${l.dealValue.toLocaleString()}` : '—'}
                     </div>
-                    <div className="text-[10px] text-muted-foreground">Prob: {l.probability}%</div>
+                    <div className="text-[10px] text-foreground-subtle">Prob: {l.probability}%</div>
                   </TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        l.status === LeadStatus.Qualified ? 'bg-green-100 text-green-800' :
-                        l.status === LeadStatus.Lost ? 'bg-red-100 text-red-800' :
-                        'bg-indigo-100 text-indigo-800'
-                    }`}>
-                      {LeadStatus[l.status]}
-                    </span>
+                    <StatusBadge status={LeadStatus[l.status]} />
                   </TableCell>
                   <TableCell className="text-right">
-                    <select
-                      className="border rounded px-2 py-1 text-sm bg-background"
+                    <Select
                       value={l.status}
                       disabled={isUpdatingStatus}
                       onChange={(e) => updateStatus({ id: l.id, status: parseInt(e.target.value) as LeadStatus })}
-                    >
-                      <option value={LeadStatus.New}>New</option>
-                      <option value={LeadStatus.Contacted}>Contacted</option>
-                      <option value={LeadStatus.Qualified}>Qualified</option>
-                      <option value={LeadStatus.Lost}>Lost</option>
-                    </select>
+                      options={[
+                        { label: 'New', value: LeadStatus.New },
+                        { label: 'Contacted', value: LeadStatus.Contacted },
+                        { label: 'Qualified', value: LeadStatus.Qualified },
+                        { label: 'Lost', value: LeadStatus.Lost },
+                      ]}
+                      className="w-36"
+                    />
                   </TableCell>
                 </TableRow>
               ))}
@@ -168,11 +162,7 @@ export default function LeadsPage() {
         )}
       </Section>
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Create New Lead"
-      >
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Lead">
         <form onSubmit={handleCreate} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <Input
@@ -209,38 +199,34 @@ export default function LeadsPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-                <label className="text-sm font-medium">Source</label>
-                <select 
-                    className="w-full border rounded px-3 py-2 bg-background"
-                    value={newLead.source}
-                    onChange={(e) => setNewLead({ ...newLead, source: parseInt(e.target.value) })}
-                >
-                    <option value={LeadSource.Facebook}>Facebook</option>
-                    <option value={LeadSource.Google}>Google</option>
-                    <option value={LeadSource.Website}>Website</option>
-                    <option value={LeadSource.Referral}>Referral</option>
-                    <option value={LeadSource.Manual}>Manual</option>
-                </select>
-            </div>
-            <div className="space-y-2">
-                <label className="text-sm font-medium">Service Interest</label>
-                <select 
-                    className="w-full border rounded px-3 py-2 bg-background"
-                    value={newLead.interest}
-                    onChange={(e) => setNewLead({ ...newLead, interest: parseInt(e.target.value) })}
-                >
-                    <option value={ServiceType.Development}>Development</option>
-                    <option value={ServiceType.Marketing}>Marketing</option>
-                    <option value={ServiceType.Staffing}>Staffing</option>
-                    <option value={ServiceType.Other}>Other</option>
-                </select>
-            </div>
+            <Select
+              label="Source"
+              value={newLead.source}
+              onChange={(e) => setNewLead({ ...newLead, source: parseInt(e.target.value) })}
+              options={[
+                { label: 'Facebook', value: LeadSource.Facebook },
+                { label: 'Google', value: LeadSource.Google },
+                { label: 'Website', value: LeadSource.Website },
+                { label: 'Referral', value: LeadSource.Referral },
+                { label: 'Manual', value: LeadSource.Manual },
+              ]}
+            />
+            <Select
+              label="Service Interest"
+              value={newLead.interest}
+              onChange={(e) => setNewLead({ ...newLead, interest: parseInt(e.target.value) })}
+              options={[
+                { label: 'Development', value: ServiceType.Development },
+                { label: 'Marketing', value: ServiceType.Marketing },
+                { label: 'Staffing', value: ServiceType.Staffing },
+                { label: 'Other', value: ServiceType.Other },
+              ]}
+            />
           </div>
 
           <Input
             label="Budget Range / Notes"
-            placeholder="$5k - $10k"
+            placeholder="$5k – $10k"
             value={newLead.budgetRange}
             onChange={(e) => setNewLead({ ...newLead, budgetRange: e.target.value })}
           />
@@ -252,7 +238,7 @@ export default function LeadsPage() {
             onChange={(e) => setNewLead({ ...newLead, description: e.target.value })}
           />
 
-          <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+          <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
             <Button variant="outline" type="button" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>
