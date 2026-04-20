@@ -1,9 +1,5 @@
 import type { NextConfig } from "next";
 import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 const normalizedApiBase = apiBase
@@ -16,7 +12,7 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   output: "standalone",
   poweredByHeader: false,
-  outputFileTracingRoot: path.join(__dirname, "../"),
+  outputFileTracingRoot: path.join(process.cwd(), "../"),
 
   async rewrites() {
     if (!normalizedApiBase) {
