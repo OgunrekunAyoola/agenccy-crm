@@ -93,8 +93,15 @@ public class AuthController : ControllerBase
             await _authService.RevokeTokenAsync(refreshToken, GetIpAddress());
         }
 
-        Response.Cookies.Delete("access_token");
-        Response.Cookies.Delete("refresh_token");
+        var deleteOptions = new CookieOptions
+        {
+            Domain = _env.IsDevelopment() ? null : ".studiomeshcrm.com",
+            Path = "/",
+            Secure = !_env.IsDevelopment(),
+            SameSite = _env.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
+        };
+        Response.Cookies.Delete("access_token", deleteOptions);
+        Response.Cookies.Delete("refresh_token", deleteOptions);
 
         return Ok(new { Message = "Logged out successfully." });
     }
