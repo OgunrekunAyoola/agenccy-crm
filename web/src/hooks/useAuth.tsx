@@ -116,7 +116,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('access_token');
       setUser(null);
       queryClient.clear();
-      window.location.href = '/';
+      const { protocol } = window.location;
+      window.location.href = `${protocol}//app.studiomeshcrm.com/login`;
     }
   };
 
