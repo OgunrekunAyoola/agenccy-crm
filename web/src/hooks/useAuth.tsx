@@ -6,9 +6,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { LoadingOverlay } from '@/components/ui/FailsafeProvider';
 
-// Public routes that should never be blocked by the auth loading overlay.
-// These pages are server-rendered and already functional before client
-// hydration completes — showing a spinner here is needlessly jarring.
 const PUBLIC_PATHS = ['/', '/login', '/signup', '/register', '/forgot-password'];
 const PUBLIC_PREFIXES = ['/reset-password', '/portal'];
 
@@ -18,6 +15,7 @@ export interface User {
   fullName: string;
   role: string;
   tenantId?: string;
+  tenantSlug?: string;
   isOnboarded?: boolean;
 }
 
@@ -46,13 +44,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function restoreSession() {
       try {
-        // Always attempt to restore via HttpOnly cookie (credentials: 'include').
-        // Do NOT gate this on localStorage — the cookie and localStorage can get
-        // out of sync, which causes an infinite middleware↔client redirect loop.
         const data = await api.get<User>('/api/auth/me');
         setUser(data);
       } catch {
-        // Session invalid or expired — clear any stale localStorage token.
         localStorage.removeItem('access_token');
       } finally {
         setLoading(false);
@@ -64,21 +58,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string, redirectTo?: string) => {
     const data = await api.post<any>('/api/auth/login', { email, password });
 
-    // Fallback for cross-domain cookie blocking
     if (data.accessToken) {
       localStorage.setItem('access_token', data.accessToken);
     }
 
     setUser(data);
-    // Use full-page navigation so the new page always hydrates with a settled
-    // cookie and a clean auth state — router.push() races with the re-render
-    // triggered by setUser() and silently drops the navigation.
-    window.location.href = data.isOnboarded === false ? '/onboarding' : (redirectTo ?? '/dashboard');
+
+    if (data.isOnboarded === false) {
+      window.location.href = '/onboarding';
+      return;
+    }
+
+    if (data.tenantSlug) {
+      const { hostname, protocol, port } = window.location;
+      if (hostname !== 'localhost') {
+        const parts = hostname.split('.');
+        const isBaseDomain = parts.length === 2 || (parts.length === 3 && parts[0] === 'app');
+        if (isBaseDomain) {
+          const baseDomain = parts.length === 3 ? parts.slice(1).join('.') : hostname;
+          const portSuffix = port ? `:${port}` : '';
+          window.location.href = `${protocol}//${data.tenantSlug}.${baseDomain}${portSuffix}/dashboard`;
+          return;
+        }
+      }
+    }
+
+    window.location.href = redirectTo ?? '/dashboard';
   };
 
   const register = async (email: string, password: string, fullName: string, agencyName: string) => {
-    const data = await api.post<User>('/api/auth/register', { email, password, fullName, agencyName });
+    const data = await api.post<any>('/api/auth/register', { email, password, fullName, agencyName });
+    if (data.accessToken) {
+      localStorage.setItem('access_token', data.accessToken);
+    }
     setUser(data);
+
+    if (data.tenantSlug) {
+      const { hostname, protocol, port } = window.location;
+      if (hostname !== 'localhost') {
+        const parts = hostname.split('.');
+        const baseDomain = parts.length === 3 ? parts.slice(1).join('.') : hostname;
+        const portSuffix = port ? `:${port}` : '';
+        window.location.href = `${protocol}//${data.tenantSlug}.${baseDomain}${portSuffix}/onboarding`;
+        return;
+      }
+    }
+
     window.location.href = '/onboarding';
   };
 

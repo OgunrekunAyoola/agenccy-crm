@@ -18,12 +18,16 @@ public class UserRepository : IUserRepository
     {
         return await _context.Users.IgnoreQueryFilters()
             .Include(u => u.RefreshTokens)
+            .Include(u => u.Tenant)
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
     public async Task<User?> GetByIdAsync(Guid id)
     {
-        return await _context.Users.Include(u => u.RefreshTokens).FirstOrDefaultAsync(u => u.Id == id);
+        return await _context.Users
+            .Include(u => u.RefreshTokens)
+            .Include(u => u.Tenant)
+            .FirstOrDefaultAsync(u => u.Id == id);
     }
 
     public async Task<User?> GetByRefreshTokenAsync(string token)

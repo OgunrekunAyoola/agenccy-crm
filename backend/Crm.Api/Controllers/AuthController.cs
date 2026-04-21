@@ -159,9 +159,10 @@ public class AuthController : ControllerBase
         {
             HttpOnly = true,
             Expires = name == "refresh_token" ? DateTime.UtcNow.AddDays(7) : DateTime.UtcNow.AddMinutes(15),
-            Secure = !_env.IsDevelopment(), // Secure cookies in production/staging (requires HTTPS)
-            SameSite = _env.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None, // 'None' is required for cross-domain cookies in production
-            Path = "/" // Explicitly set path to root so all API endpoints can receive the cookie
+            Secure = !_env.IsDevelopment(),
+            SameSite = _env.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
+            Domain = _env.IsDevelopment() ? null : ".studiomeshcrm.com", // Share cookies across all subdomains
+            Path = "/"
         };
         Response.Cookies.Append(name, token, cookieOptions);
     }

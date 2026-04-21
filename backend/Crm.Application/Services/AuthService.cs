@@ -32,7 +32,9 @@ public class AuthService
         if (existingUser != null) return null;
 
         // 1. Create Tenant
-        var tenant = new Tenant { Name = request.AgencyName };
+        var slug = System.Text.RegularExpressions.Regex.Replace(
+            request.AgencyName.ToLowerInvariant().Trim(), @"[^a-z0-9]+", "-").Trim('-');
+        var tenant = new Tenant { Name = request.AgencyName, Slug = slug };
         await _tenantRepository.AddAsync(tenant);
 
         // 2. Create User as Admin of that tenant
@@ -54,7 +56,8 @@ public class AuthService
             Email = user.Email,
             FullName = user.FullName,
             Role = user.Role.ToString(),
-            TenantId = user.TenantId
+            TenantId = user.TenantId,
+            TenantSlug = tenant.Slug
         };
     }
 
@@ -69,7 +72,8 @@ public class AuthService
             Email = user.Email,
             FullName = user.FullName,
             Role = user.Role.ToString(),
-            TenantId = user.TenantId
+            TenantId = user.TenantId,
+            TenantSlug = user.Tenant?.Slug ?? string.Empty
         };
     }
 
@@ -143,7 +147,8 @@ public class AuthService
             Email = user.Email,
             FullName = user.FullName,
             Role = user.Role.ToString(),
-            TenantId = user.TenantId
+            TenantId = user.TenantId,
+            TenantSlug = user.Tenant?.Slug ?? string.Empty
         };
 
         return (response, accessToken, refreshToken.Token);

@@ -264,6 +264,7 @@ app.UseCors("DefaultPolicy");
 // Global Exception Handling (RFC 7807)
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
+app.UseMiddleware<TenantResolutionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
