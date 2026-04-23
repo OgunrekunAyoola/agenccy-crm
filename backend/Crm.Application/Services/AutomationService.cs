@@ -119,9 +119,10 @@ public class AutomationService : IAutomationService
                 Title = $"Contract for {offer.Title}",
                 Status = ContractStatus.Draft,
                 ProjectId = project.Id,
+                ClientId = clientId,
                 TenantId = offer.TenantId,
                 StartDate = DateTime.UtcNow,
-                EndDate = DateTime.UtcNow.AddMonths(12) // Default 1 year
+                EndDate = DateTime.UtcNow.AddMonths(12)
             };
             await _contractRepository.AddAsync(contract);
 
